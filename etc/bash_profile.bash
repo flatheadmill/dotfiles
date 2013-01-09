@@ -17,9 +17,12 @@ dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
 DOTFILES="$( dirname "$dir" )"
 
+PATH=~/.dotfiles/bin:$PATH
+
 if [ -d /opt/bin ]; then
   PATH="/opt/bin:$PATH"
 fi
+
 if [ -d /opt/share/npm/bin ]; then
   PATH=/opt/bin:$PATH
 fi
