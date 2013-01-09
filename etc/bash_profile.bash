@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -f "$HOME/.profile" ]; then
-    . "$HOME/.profile"
+if [ -e ~/.bash_profile_before ]; then
+  . ~/.bash_profile_before
 fi
 
 # Where are we?
@@ -15,13 +15,26 @@ do
 done
 dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
-export DOTFILES="$( dirname "$dir" )"
+DOTFILES="$( dirname "$dir" )"
+
+if [ -d /opt/bin ]; then
+  PATH="/opt/bin:$PATH"
+fi
+if [ -d /opt/share/npm/bin ]; then
+  PATH=/opt/bin:$PATH
+fi
+
+if ! { which node > /dev/null; } && [ -d /node ]; then
+  echo "looking for node" 
+fi
+
+if [ -e ~/.usr/bin ]; then
+  PATH=~/.usr/bin:$PATH
+fi
+
+export PATH
 
 # Source all bash dotfiles.
 for file in $(find "$DOTFILES/etc/bash_profile.d" -type f); do
   . "$file"
 done
-
-if [ -e ~/.bash_profile_local ]; then
-  . ~/.bash_profile_local
-fi
