@@ -1,3 +1,6 @@
+# Give me a chance to figure it myself out before you redraw my screen.
+setopt bash_autolist
+
 # I want vi key bindings where ever I can get them. It appears that both of the
 # following are required for `zsh`.
 set -o vi
