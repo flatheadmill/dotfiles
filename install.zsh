@@ -31,11 +31,16 @@ fi
 
 DOTFILES="$HOME/.dotfiles"
 
+if [ $(basename $SHELL) != "zsh" ]; then
+  abend "change your shell to zsh before running install"
+fi
+
 if ! [ -e "$HOME/.oh-my-zsh" ]; then
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
-  sed -i -e 's/# DISABLE_AUTO_TITLE/DISABLE_AUTO_TITLE/' .zshrc
-  sed -i -e 's/# COMPLETION_WAITING_DOTS/COMPLETION_WAITING_DOTS/' .zshrc
 fi
+
+sed -i -e 's/# DISABLE_AUTO_TITLE/DISABLE_AUTO_TITLE/' ~/.zshrc
+sed -i -e 's/# COMPLETION_WAITING_DOTS/COMPLETION_WAITING_DOTS/' ~/.zshrc
 
 if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
