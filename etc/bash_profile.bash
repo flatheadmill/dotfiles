@@ -15,7 +15,11 @@ do
 done
 dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
-export DOTFILES="$( dirname "$dir" )"
+DOTFILES="$( dirname "$dir" )"
+
+if [ -e ~/.usr/bin ]; then
+  PATH=~/.usr/bin:$PATH
+fi
 
 # Source all bash dotfiles.
 for file in $(find "$DOTFILES/etc/bash_profile.d" -type f); do
