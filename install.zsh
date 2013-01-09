@@ -33,6 +33,8 @@ DOTFILES="$HOME/.dotfiles"
 
 if ! [ -e "$HOME/.oh-my-zsh" ]; then
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
+  sed -i -e 's/# DISABLE_AUTO_TITLE/DISABLE_AUTO_TITLE/' .zshrc
+  sed -i -e 's/# COMPLETION_WAITING_DOTS/COMPLETION_WAITING_DOTS/' .zshrc
 fi
 
 if ! [ -e "$HOME/.dotfiles" ]; then
