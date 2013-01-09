@@ -1,4 +1,6 @@
-# I want vi key bindings where ever I can get them.
+# I want vi key bindings where ever I can get them. It appears that both of the
+# following are required for `zsh`.
+set -o vi
 bindkey -v
 
 # http://unix.stackexchange.com/questions/44115/how-do-i-perform-a-reverse-history-search-in-zshs-vi-mode
