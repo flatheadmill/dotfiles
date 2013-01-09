@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # Installation of ~bigeasy/dotfiles. At first I thought I'd use a Makefile, but
 # I might want to administer a server where build tools are not installed.
@@ -30,6 +30,10 @@ if ! { [[  "$git_version" == 1.8.* ]] || [[ "$git_version" == 1.7.1[0-9].* ]]; }
 fi
 
 DOTFILES="$HOME/.dotfiles"
+
+if ! [ -e "$HOME/.oh-my-zsh" ]; then
+  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
+fi
 
 if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"

@@ -16,5 +16,5 @@ function hidegrep()
 # Launch screen with a name name and a fresh bash login.
 function scn ()
 {
-    screen -t $1 bash --login
+    screen -t $1 zsh -l
 }
