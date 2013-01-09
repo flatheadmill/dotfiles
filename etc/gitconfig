@@ -1,0 +1,37 @@
+; identity
+[user]
+	name = Alan Gutierrez
+	email = alan@prettyrobots.com
+[github]
+	user = bigeasy
+; aesthetics
+[color]
+  ui = true
+; laziness
+[alias]
+  co = checkout
+  ci = commit
+  st = status
+  br = branch
+  hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+  type = cat-file -t
+  dump = cat-file -p
+; cruft specific to my particular blend of development environment
+[core]
+	excludesfile = ~/.dotfiles/etc/gitignore
+; oft typed urls
+[url "git@github.com:bigeasy/"]
+  insteadof = bigeasy:
+; attempt to push read-only repos back to git if you can
+[url "git@github.com:"]
+  pushInsteadOf = https://github.com/
+  pushInsteadOf = git://github.com/
+; Atlassian SourceTree added the following
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+
+; vim: set ft=gitconfig:

@@ -35,4 +35,4 @@ if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
 fi
 
-rsync -a "$DOTFILES/home" "$HOME"
+rsync -a "$DOTFILES/home/" "$HOME/"
