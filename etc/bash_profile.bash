@@ -17,9 +17,22 @@ dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
 DOTFILES="$( dirname "$dir" )"
 
+if [ -d /opt/bin ]; then
+  PATH="/opt/bin:$PATH"
+fi
+if [ -d /opt/share/npm/bin ]; then
+  PATH=/opt/bin:$PATH
+fi
+
+if ! { which node > /dev/null; } && [ -d /node ]; then
+  echo "looking for node" 
+fi
+
 if [ -e ~/.usr/bin ]; then
   PATH=~/.usr/bin:$PATH
 fi
+
+export PATH
 
 # Source all bash dotfiles.
 for file in $(find "$DOTFILES/etc/bash_profile.d" -type f); do
