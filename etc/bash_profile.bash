@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -f "$HOME/.profile" ]; then
-    . "$HOME/.profile"
+if [ -e ~/.bash_profile_before ]; then
+  . ~/.bash_profile_before
 fi
 
 # Where are we?
@@ -21,7 +21,3 @@ export DOTFILES="$( dirname "$dir" )"
 for file in $(find "$DOTFILES/etc/bash_profile.d" -type f); do
   . "$file"
 done
-
-if [ -e ~/.bash_profile_local ]; then
-  . ~/.bash_profile_local
-fi
