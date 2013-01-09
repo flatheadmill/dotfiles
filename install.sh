@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Installation of ~bigeasy/dotfiles. At first I thought I'd use a Makefile, but
 # I might want to administer a server where build tools are not installed.
