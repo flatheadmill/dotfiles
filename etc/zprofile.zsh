@@ -1,11 +1,11 @@
-#!/bin/bash
-
 if [ -e ~/.bash_profile_before ]; then
   . ~/.bash_profile_before
 fi
 
+echo $0
+
 # Where are we?
-src="${BASH_SOURCE[0]}"
+src="$0"
 dir="$( dirname "$src" )"
 while [ -h "$src" ]
 do 
@@ -16,6 +16,7 @@ done
 dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
 DOTFILES="$( dirname "$dir" )"
+echo $DOTFILES
 
 PATH=~/.dotfiles/bin:$PATH
 
@@ -37,7 +38,10 @@ fi
 
 export PATH
 
+echo $DOTFILES/etc/zprofile.d/*
+
+
 # Source all bash dotfiles.
-for file in $(find "$DOTFILES/etc/bash_profile.d" -type f); do
+for file in $DOTFILES/etc/zprofile.d/*; do
   . "$file"
 done
