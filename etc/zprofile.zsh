@@ -2,8 +2,6 @@ if [ -e ~/.bash_profile_before ]; then
   . ~/.bash_profile_before
 fi
 
-echo $0
-
 # Where are we?
 src="$0"
 dir="$( dirname "$src" )"
@@ -16,7 +14,6 @@ done
 dir="$( cd -P "$( dirname "$src" )" && pwd )"
 
 DOTFILES="$( dirname "$dir" )"
-echo $DOTFILES
 
 PATH=~/.dotfiles/bin:$PATH
 
@@ -37,9 +34,6 @@ if [ -e ~/.usr/bin ]; then
 fi
 
 export PATH
-
-echo $DOTFILES/etc/zprofile.d/*
-
 
 # Source all bash dotfiles.
 for file in $DOTFILES/etc/zprofile.d/*; do
