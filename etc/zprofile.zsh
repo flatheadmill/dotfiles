@@ -21,8 +21,8 @@ if [ -d /opt/bin ]; then
   PATH="/opt/bin:$PATH"
 fi
 
-if [ -d /opt/share/npm/bin ]; then
-  PATH=/opt/bin:$PATH
+if [ -d /Users/alan/.usr/share/npm/bin ]; then
+  PATH=/Users/alan/.usr/share/npm/bin:$PATH
 fi
 
 if ! { which node > /dev/null; } && [ -d /node ]; then
