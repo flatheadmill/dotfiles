@@ -41,6 +41,7 @@ fi
 
 # We set this in our `~/.dotfiles/zprofile.zsh`.
 sed -i -e 's/^ZSH_THEME/# ZSH_THEME/' ~/.zshrc
+sed -i -e 's/^plugins/# plugins/' ~/.zshrc
 
 if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
