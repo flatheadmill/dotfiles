@@ -35,7 +35,12 @@ fi
 
 export PATH
 
+source $DOTFILES/etc/ohmy.zsh
+
+ZSH_CUSTOM=$DOTFILES/etc/zprofile.d
+unset DOTFILES
+
 # Source all bash dotfiles.
-for file in $DOTFILES/etc/zprofile.d/*; do
-  . "$file"
-done
+#for file in $DOTFILES/etc/zprofile.d/*; do
+#  . "$file"
+#done
