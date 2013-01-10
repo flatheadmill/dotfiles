@@ -39,8 +39,8 @@ if ! [ -e "$HOME/.oh-my-zsh" ]; then
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
 fi
 
-sed -i -e 's/# DISABLE_AUTO_TITLE/DISABLE_AUTO_TITLE/' ~/.zshrc
-sed -i -e 's/# COMPLETION_WAITING_DOTS/COMPLETION_WAITING_DOTS/' ~/.zshrc
+# We set this in our `~/.dotfiles/zprofile.zsh`.
+sed -i -e 's/^ZSH_THEME/# ZSH_THEME/' ~/.zshrc
 
 if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
