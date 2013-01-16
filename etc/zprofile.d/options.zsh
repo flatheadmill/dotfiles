@@ -3,3 +3,9 @@ setopt bash_autolist
 
 # So much easier to see that the command failed and edit it.
 unsetopt correct_all
+
+# I don't want to automatically share history with other shells.
+unsetopt share_history
+
+# But, let's have the option by constantly appending to the history.
+setopt inc_append_history
