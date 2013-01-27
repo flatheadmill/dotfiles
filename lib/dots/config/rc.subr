@@ -1,0 +1,13 @@
+rc_conf_set () {
+  local conf=$1 key=$2 value=$3 cur
+  (
+    . "$conf"
+    eval cur=\$${key}
+    if [ "${cur}-x" != "${value}-x" ]; then
+      if [ "${cur}-x" != "-x" ]; then
+        sed -i -e '/'${key}'=/d' "$tmpconf"
+      fi
+      echo ${key}'="'${value}'"' >> "$tmpconf"
+    fi
+  )
+}
