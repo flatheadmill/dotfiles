@@ -52,4 +52,4 @@ fi
 
 rsync -a "$DOTFILES/home/unix/" "$HOME/"
 
-[ -e "$DOTFILES/home/$(uname)" ] rsync -a "$DOTFILES/home/$(uname)/" "$HOME/"
+[ -e "$DOTFILES/home/$(uname)" ] && rsync -a "$DOTFILES/home/$(uname)/" "$HOME/"
