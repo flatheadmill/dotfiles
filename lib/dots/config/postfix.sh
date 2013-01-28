@@ -5,12 +5,25 @@ suffix="-tmp-$$-`date +%H-%M-%S`"
 trap "tidy" SIGHUP SIGINT SIGTERM
 
 tidy () {
-#  rm -f /tmp/*$suffix*
+  rm -f /tmp/*$suffix*
   exit $1
+}
+
+abend () {
+  echo "error: $1" 1>&2
+  tidy 1
 }
 
 uname=`uname`
 dirname=`dirname $0`
+
+if ! which postfix > /dev/null 2>&1; then
+  abend "install Postfix with Cyrus SASL" 
+fi
+
+if which yum > /dev/null && ! rpm -q cyrus-sasl-plain > /dev/null; then
+  abend "install cyrus-sasl-plain" 
+fi
 
 if [ "$uname-x" = "FreeBSD-x" ]; then
   . "$dirname/rc.subr"
@@ -26,6 +39,12 @@ fi
 
 cp "$confdir/main.cf.orig" "/tmp/main$suffix.cf"
 
+for file in /etc/ssl/certs/ca-bundle.crt \
+            /usr/local/share/certs/ca-root-nss.crt
+do
+  [ -e $file ] && smtp_tls_CAfile=/etc/ssl/certs/ca-bundle.crt
+done
+
 cat <<EOF >> "/tmp/main$suffix.cf"
 
 # Relay thorugh GMail.
@@ -37,7 +56,7 @@ smtp_sasl_security_options=noanonymous
 
 smtp_use_tls=yes
 
-smtp_tls_CAfile=/usr/local/share/certs/ca-root-nss.crt
+smtp_tls_CAfile=$smtp_tls_CAfile
 
 transport_maps=hash:$confdir/transport
 virtual_maps=hash:$confdir/virtual
@@ -61,9 +80,9 @@ EOF
 sudo cp "/tmp/transport$suffix" "$confdir/transport"
 
 cat <<EOF >> "/tmp/virtual$suffix"
-root alan@prettyrobots.com
-postmaster alan@prettyrobots.com
-alan alan@prettyrobots.com
+root $EMAIL_ADDRESS
+postmaster $EMAIL_ADDRESS
+$USER $EMAIL_ADDRESS
 EOF
 
 sudo cp "/tmp/virtual$suffix" "$confdir/virtual"
