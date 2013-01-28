@@ -10,12 +10,20 @@ export AWS_SECRET_ACCESS_KEY
 export AWS_ACCESS_KEY_ID
 export PASSPHRASE
 
+export PATH=$HOME/.usr/bin:$PATH
+
+ulimit -n 1024
+
 hostname=`hostname | sed s/.local$//`
+
+echo "`date` $1 $USER $HOME"  >> /Users/alan/monkey
 
 abend () {
   echo "$1" 1>&2
   exit 1
 }
+
+echo "run at `date`" >> $HOME/monkey
 
 chain_end_time () {
   local collection=$1 when
@@ -27,6 +35,8 @@ chain_end_time () {
 if [ ! -e "$HOME/.backups" ]; then
   abend "error: create a list of directories to backup in $HOME/.backups"
 fi
+
+[ -e "$HOME/.backups/running" ] && exit 0
 
 case "$1" in
   interval)
@@ -41,13 +51,31 @@ case "$1" in
     if [ "$2" = "full" ]; then
       full="full"
     fi
-    (duplicity $full -v8 --include-filelist "$HOME/.backups/daily" --exclude "**" \
-      "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1) | mail -s "$hostname backup `date`" alan@prettyrobots.com
+    touch "$HOME/.backups/running"
+    (duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+          --include-globbing-filelist "$HOME/.backups/daily" \
+          --exclude "**" \
+          "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1) \
+      | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname backup `date`" $USER
+    rm "$HOME/.backups/running"
+    ;;
+  dry-run)
+    duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+          --include-globbing-filelist "$HOME/.backups/daily" \
+          --exclude "**" \
+          --dry-run \
+          "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1
     ;;
   status)
     duplicity collection-status "s3+http://archivals/$hostname/home/daily"
     ;;
+  hello)
+    echo mail -s "Hello, $USER"'!' $USER >> $HOME/monkey
+    echo $USER | mail -s "Hello, $USER"'!' $USER
+    sleep 3;
+    ;;
   *)
+    echo $USER | mail -s unsupported $USER
     echo unsupported ; exit 1
     ;;
 esac
@@ -64,6 +92,6 @@ echo $since
 if [ "$since" -ge 600 ]; then
   for dir in git; do
     (duplicity -v8 --include "$HOME/$dir" --exclude "**" "$HOME" "s3+http://archivals/$hostname/home/$dir" 2>&1) | \
-      mail -s "$hostname backup" alan@prettyrobots.com
+      mail -s "$hostname backup" $USER
   done
 fi
