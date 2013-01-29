@@ -40,10 +40,40 @@ fi
 cp "$confdir/main.cf.orig" "/tmp/main$suffix.cf"
 
 for file in /etc/ssl/certs/ca-bundle.crt \
-            /usr/local/share/certs/ca-root-nss.crt
+            /usr/local/share/certs/ca-root-nss.crt \
+            "$HOME/.usr/etc/ssl/certs/ca-bundle.crt"
 do
-  [ -e $file ] && smtp_tls_CAfile=$file
+  [ -e $file ] && smtp_tls_CAfile="$file"
 done
+
+CERTDATA_URL="https://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt?raw=1"
+gpg_exec () {
+  gpg --quiet --no-default-keyring --keyring /tmp/gpg$suffix "$@"
+}
+
+if [ -z "$smtp_tls_CAfile" -a "$uname" = "Darwin" ]; then
+  build="/tmp/build$suffix"
+  mkdir -p "$build"
+
+  sig=`curl -s http://curl.haxx.se/download/curldist.txt | grep '^curl-.*.tar.gz.asc' | sort | tail -n 1`
+  curl -s "http://curl.haxx.se/download/$sig" > "$build/$sig"
+
+  archive=`echo $sig | sed 's/\.asc$//'`
+  curl -s "http://curl.haxx.se/download/$archive" > "$build/$archive"
+  tar -C "$build" -zxf "$archive"
+  dir=`echo $sig | sed 's/\.tar\.gz\.asc$//'`
+
+  gpg_exec --import "$HOME/.dotfiles/etc/daniel@haxx.se.gpg"
+  gpg_exec --verify "$build/$sig" > /dev/null 2>&1 || abend "cannot verify cURL"
+  curl -s "$CERTDATA_URL" > "$build/$dir/lib/certdata.txt"
+
+  (cd "$build/$dir/lib" && ./mk-ca-bundle.pl -n -q)
+
+  mkdir -p "$HOME/.usr/etc/ssl/certs/"
+  cp "$build/$dir/lib/ca-bundle.crt" "$HOME/.usr/etc/ssl/certs/"
+
+  smtp_tls_CAfile="$HOME/.usr/etc/ssl/certs/ca-bundle.crt"
+fi
 
 cat <<EOF >> "/tmp/main$suffix.cf"
 
