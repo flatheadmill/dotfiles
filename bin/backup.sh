@@ -43,33 +43,46 @@ duplicity_exec () {
 }
 
 duplicity_listing () {
+  directory=$1
   duplicity_exec list-current-files `duplicity_base`/$directory | \
     tail -n +3 | \
-    sed 's/[A-Za-z]\{3\} [A-Za-z]\{3\} \{1,2\}[0-9]\{1,2\} \([0-9]\{2\}:\)\{2\}[0-9]\{2\} [0-9]\{4\} //'
+    sed 's/[A-Za-z]\{3\} [A-Za-z]\{3\} \{1,2\}[0-9]\{1,2\} \([0-9]\{2\}:\)\{2\}[0-9]\{2\} [0-9]\{4\} //' > /tmp/duplicity_listing$suffix.txt
+  # Assert that we correctly stripped the date out of the Duplicity listing.
+  # Note the use of the UNIX path separator as a regex operator for sed.
+  start=`echo "$directory" | grep -o / | wc -l`
+  start=`expr 2 + $start`
+  lines=`tail -n +$start /tmp/duplicity_listing$suffix.txt | sed '\:^'$directory':d' | wc -l`
+  [ $lines -eq 0 ] || abend "could not strip dates from Duplicity listing: $lines"
+  length=`expr ${#directory} + 2`
+  cut -c $length- /tmp/duplicity_listing$suffix.txt | strip_listing | sort
 }
 
 strip_listing () {
   sed -e '/.DS_Store$/d' -e '/.AppleDouble/d' -e '/^$/d'
 }
 
+directory_changes () {
+  volume="$1"
+
+  $0 changes > /tmp/changes$suffix.txt
+  lines=`sed -e 's/^[AD] //' /tmp/changes$suffix.txt | sed '\:^'$directory':d' | wc -l`
+
+  echo $lines
+
+}
+
 directory_has_addtions () {
-  directory=$1
+  volume=$1
 
-  duplicity_listing $directory > /tmp/listing$suffix.txt
+  $0 changes $volume | strip_listing > /tmp/changes$suffix.txt
 
-  # Assert that we correctly stripped the date out of the Duplicity listing.
-  # Note the use of the UNIX path separator as a regex operator for sed.
-  start=`echo "$directory" | grep -o / | wc -l`
-  start=`expr 2 + $start`
-  lines=`tail -n +$start /tmp/listing$suffix.txt | sed '\:^'$directory':d' | wc -l`
-  [ $lines -eq 0 ] || abend "could not strip dates from Duplicity listing: $lines"
-
-  length=`expr ${#directory} + 2`
-  cut -c $length- /tmp/listing$suffix.txt | strip_listing | sort > /tmp/stored
-
-  (cd "$HOME/$directory" && find .) | cut -c 3- | strip_listing | sort > /tmp/actual
-
-  ! diff /tmp/stored /tmp/actual > /dev/null
+  if grep '^D' /tmp/changes$suffix.txt; then
+    return 0
+  else
+    sed -e 's/^A //' /tmp/changes$suffix.txt > /tmp/additions$suffix.txt
+    duplicity_listing $volume | strip_listing > /tmp/existing$suffix.txt
+    diff /tmp/existing$suffix.txt /tmp/additions$suffix.txt | grep -q '^>'
+  fi
 }
 
 if [ ! -e "$HOME/.backups" ]; then
@@ -87,11 +100,11 @@ case "$1" in
   interval)
     since=`$0 since`
     if [ "$since" -ge 86400 ]; then
-      $0 daily
+      $0 backup daily
     fi
     while read directory; do
       if directory_has_addtions "$directory"; then
-        $0 posterity "$directory"
+        $0 backup "$directory"
       fi
     done < "$HOME/.backups/posterity"
     ;;
@@ -113,13 +126,47 @@ case "$1" in
       | tee -a "$HOME/.backups/backup.log" | tee | mail -s "$hostname backup of $directory for posterity on `date`" $USER
     rm "$HOME/.backups/running"
     ;;
-  changes)
-    directory="$2"
-    duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
-          --include "$HOME/$directory" \
+  backup)
+    volume="$2"
+    if [ "$volume" = "full" ]; then
+      full="full"
+      volume="$3"
+    fi
+    shift; shift
+    if [ -e "$HOME/.backups.running" ]; then
+      abend "backup is already running"
+    fi
+    touch "$HOME/.backups/running"
+    if [ "$volume" = "daily" ]; then
+      duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+            --include-globbing-filelist "$HOME/.backups/daily" \
+            --exclude "**" \
+            "$@" \
+            "$HOME" "s3+http://archivals/$hostname/home/$volume"
+    else
+      duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+          --exclude-globbing-filelist "$HOME/.backups/exclude" \
+          --include "$HOME/$volume" \
           --exclude "**" \
-          --dry-run \
-          "$HOME" "s3+http://archivals/$hostname/home/$directory" 2>/dev/null
+          "$@" \
+          "$HOME" "s3+http://archivals/$hostname/home/$volume"
+    fi
+    rm "$HOME/.backups/running"
+    ;;
+  listing)
+    duplicity_listing $2
+    ;;
+  changes)
+    volume="$2"
+    $0 backup "$volume" --dry-run | grep '^[AD] ' | sort -k 2 > /tmp/changes$suffix.txt
+    start=`echo "$volume" | grep -o / | wc -l`
+    start=`expr 3 + $start`
+    lines=`tail -n +$start /tmp/changes$suffix.txt | sed -e '\:^[AD] '$volume':d' | wc -l`
+    [ $lines -eq 0 ] || abend "unexepected Duplicity listing: $lines"
+    tail -n +$start /tmp/changes$suffix.txt | sed -e 's:^\([AD]\) '$volume'/:\1 :'
+    ;;
+  dry-run)
+    $0 backup "$2" --dry-run
     ;;
   daily)
     if [ "$2" = "full" ]; then
@@ -132,13 +179,6 @@ case "$1" in
           "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1) \
       | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname backup `date`" $USER
     rm "$HOME/.backups/running"
-    ;;
-  dry-run)
-    duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
-          --include-globbing-filelist "$HOME/.backups/daily" \
-          --exclude "**" \
-          --dry-run \
-          "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1
     ;;
   status)
     duplicity collection-status "s3+http://archivals/$hostname/home/daily"
