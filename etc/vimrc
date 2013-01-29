@@ -8,6 +8,7 @@ set textwidth=80        " short lines too
 set autoindent          " make things pretty
 set modelines=1         " no longer the default?
 set visualbell          " don't distrub the neighbors
+let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
 " <!--+
