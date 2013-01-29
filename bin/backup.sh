@@ -14,16 +14,12 @@ export PATH=$HOME/.usr/bin:$PATH
 
 ulimit -n 1024
 
-hostname=`hostname | sed s/.local$//`
-
-echo "`date` $1 $USER $HOME"  >> /Users/alan/monkey
+hostname=`hostname | sed 's/\([^.]*\).*$/\1/'`
 
 abend () {
   echo "$1" 1>&2
   exit 1
 }
-
-echo "run at `date`" >> $HOME/monkey
 
 chain_end_time () {
   local collection=$1 when
@@ -39,10 +35,13 @@ fi
 [ -e "$HOME/.backups/running" ] && exit 0
 
 case "$1" in
-  interval)
+  since)
     end=`chain_end_time daily`
     now=`date "+%s"`
-    since=`expr $now - $end`
+    expr $now - $end
+    ;;
+  interval)
+    since=`$0 since`
     if [ "$since" -ge 86400 ]; then
       $0 backup
     fi
@@ -70,9 +69,11 @@ case "$1" in
     duplicity collection-status "s3+http://archivals/$hostname/home/daily"
     ;;
   hello)
-    echo mail -s "Hello, $USER"'!' $USER >> $HOME/monkey
     echo $USER | mail -s "Hello, $USER"'!' $USER
     sleep 3;
+    ;;
+  url)
+    echo "s3+http://archivals/$hostname/home"
     ;;
   *)
     echo $USER | mail -s unsupported $USER
