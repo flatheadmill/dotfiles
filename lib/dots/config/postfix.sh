@@ -42,7 +42,7 @@ cp "$confdir/main.cf.orig" "/tmp/main$suffix.cf"
 for file in /etc/ssl/certs/ca-bundle.crt \
             /usr/local/share/certs/ca-root-nss.crt
 do
-  [ -e $file ] && smtp_tls_CAfile=/etc/ssl/certs/ca-bundle.crt
+  [ -e $file ] && smtp_tls_CAfile=$file
 done
 
 cat <<EOF >> "/tmp/main$suffix.cf"
