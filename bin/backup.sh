@@ -52,7 +52,7 @@ duplicity_listing () {
   start=`echo "$directory" | grep -o / | wc -l`
   start=`expr 2 + $start`
   lines=`tail -n +$start /tmp/duplicity_listing$suffix.txt | sed '\:^'$directory':d' | wc -l`
-  [ $lines -eq 0 ] || abend "could not strip dates from Duplicity listing: $lines"
+  [ $lines -eq 0 ] || abend "could not strip dates from Duplicity listing: $directory $lines"
   length=`expr ${#directory} + 2`
   cut -c $length- /tmp/duplicity_listing$suffix.txt | strip_listing | sort
 }
@@ -143,11 +143,14 @@ case "$1" in
   listing)
     duplicity_listing $2
     ;;
+  files)
+    duplicity_exec list-current-files `duplicity_base`/$2
+    ;;
   changes)
     volume="$2"
     $0 backup "$volume" --dry-run | grep '^[AD] ' | sort -k 2 > /tmp/changes$suffix.txt
     start=`echo "$volume" | grep -o / | wc -l`
-    start=`expr 3 + $start`
+    start=`expr 2 + $start`
     lines=`tail -n +$start /tmp/changes$suffix.txt | sed -e '\:^[AD] '$volume':d' | wc -l`
     [ $lines -eq 0 ] || abend "unexepected Duplicity listing: $lines"
     tail -n +$start /tmp/changes$suffix.txt | sed -e 's:^\([AD]\) '$volume'/:\1 :'
@@ -156,7 +159,7 @@ case "$1" in
     $0 backup "$2" --dry-run
     ;;
   status)
-    duplicity collection-status "s3+http://archivals/$hostname/home/daily"
+    duplicity collection-status "s3+http://archivals/$hostname/home/$2"
     ;;
   hello)
     echo $USER | mail -s "Hello, $USER"'!' $USER
