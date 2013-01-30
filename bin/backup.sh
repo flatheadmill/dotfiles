@@ -100,31 +100,18 @@ case "$1" in
   interval)
     since=`$0 since`
     if [ "$since" -ge 86400 ]; then
-      $0 backup daily
+      $0 backup daily \
+      | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname daily backup for `date`" $USER
     fi
     while read directory; do
       if directory_has_addtions "$directory"; then
-        $0 backup "$directory"
+        $0 backup "$directory" \
+        | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname backup of $directory for posterity on `date`" $USER
       fi
     done < "$HOME/.backups/posterity"
     ;;
   additions)
     directory_has_addtions $2 && tidy 0 || tidy 1
-    ;;
-  posterity)
-    if [ "$2" = "full" ]; then
-      full="full"
-      directory="$3"
-    else
-      directory="$2"
-    fi
-    touch "$HOME/.backups/running"
-    (duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
-          --include "$HOME/$directory" \
-          --exclude "**" \
-          "$HOME" "s3+http://archivals/$hostname/home/$directory" 2>&1) \
-      | tee -a "$HOME/.backups/backup.log" | tee | mail -s "$hostname backup of $directory for posterity on `date`" $USER
-    rm "$HOME/.backups/running"
     ;;
   backup)
     volume="$2"
@@ -167,18 +154,6 @@ case "$1" in
     ;;
   dry-run)
     $0 backup "$2" --dry-run
-    ;;
-  daily)
-    if [ "$2" = "full" ]; then
-      full="full"
-    fi
-    touch "$HOME/.backups/running"
-    (duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
-          --include-globbing-filelist "$HOME/.backups/daily" \
-          --exclude "**" \
-          "$HOME" "s3+http://archivals/$hostname/home/daily" 2>&1) \
-      | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname backup `date`" $USER
-    rm "$HOME/.backups/running"
     ;;
   status)
     duplicity collection-status "s3+http://archivals/$hostname/home/daily"
