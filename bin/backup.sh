@@ -42,21 +42,6 @@ duplicity_exec () {
   $HOME/.dotfiles/bin/backup.sh duplicity "$@"
 }
 
-duplicity_listing () {
-  directory=$1
-  duplicity_exec list-current-files `duplicity_base`/$directory | \
-    tail -n +3 | \
-    sed 's/[A-Za-z]\{3\} [A-Za-z]\{3\} \{1,2\}[0-9]\{1,2\} \([0-9]\{2\}:\)\{2\}[0-9]\{2\} [0-9]\{4\} //' > /tmp/duplicity_listing$suffix.txt
-  # Assert that we correctly stripped the date out of the Duplicity listing.
-  # Note the use of the UNIX path separator as a regex operator for sed.
-  start=`echo "$directory" | grep -o / | wc -l`
-  start=`expr 2 + $start`
-  lines=`tail -n +$start /tmp/duplicity_listing$suffix.txt | sed '\:^'$directory':d' | wc -l`
-  [ $lines -eq 0 ] || abend "could not strip dates from Duplicity listing: $directory $lines"
-  length=`expr ${#directory} + 2`
-  cut -c $length- /tmp/duplicity_listing$suffix.txt | strip_listing | sort
-}
-
 strip_listing () {
   sed -e '/.DS_Store$/d' -e '/.AppleDouble/d' -e '/^$/d'
 }
@@ -69,20 +54,6 @@ directory_changes () {
 
   echo $lines
 
-}
-
-directory_has_addtions () {
-  volume=$1
-
-  $0 changes $volume | strip_listing > /tmp/changes$suffix.txt
-
-  if grep '^D' /tmp/changes$suffix.txt; then
-    return 0
-  else
-    sed -e 's/^A //' /tmp/changes$suffix.txt > /tmp/additions$suffix.txt
-    duplicity_listing $volume | strip_listing > /tmp/existing$suffix.txt
-    diff /tmp/existing$suffix.txt /tmp/additions$suffix.txt | grep -q '^>'
-  fi
 }
 
 if [ ! -e "$HOME/.backups" ]; then
@@ -104,14 +75,22 @@ case "$1" in
       | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname daily backup for `date`" $USER
     fi
     while read directory; do
-      if directory_has_addtions "$directory"; then
+      if $0 dirty "$directory"; then
         $0 backup "$directory" \
         | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname backup of $directory for posterity on `date`" $USER
       fi
     done < "$HOME/.backups/posterity"
     ;;
-  additions)
-    directory_has_addtions $2 && tidy 0 || tidy 1
+  dirty)
+    $0 changes $2 > /tmp/changes$suffix.txt
+
+    if grep -q '^D' /tmp/changes$suffix.txt; then
+      tidy 0
+    else
+      sed -e 's/^A //' /tmp/changes$suffix.txt > /tmp/additions$suffix.txt
+      $0 listing $2 > /tmp/existing$suffix.txt
+      diff /tmp/existing$suffix.txt /tmp/additions$suffix.txt | grep -q '^>' && tidy 0 || tidy 1
+    fi
     ;;
   backup)
     volume="$2"
@@ -141,19 +120,16 @@ case "$1" in
     rm "$HOME/.backups/running"
     ;;
   listing)
-    duplicity_listing $2
+    duplicity_exec list-current-files `duplicity_base`/$2 | \
+      tail -n +3 | \
+      sed 's/[A-Za-z]\{3\} [A-Za-z]\{3\} \{1,2\}[0-9]\{1,2\} \([0-9]\{2\}:\)\{2\}[0-9]\{2\} [0-9]\{4\} //' | \
+      sort
     ;;
   files)
     duplicity_exec list-current-files `duplicity_base`/$2
     ;;
   changes)
-    volume="$2"
-    $0 backup "$volume" --dry-run | grep '^[AD] ' | sort -k 2 > /tmp/changes$suffix.txt
-    start=`echo "$volume" | grep -o / | wc -l`
-    start=`expr 2 + $start`
-    lines=`tail -n +$start /tmp/changes$suffix.txt | sed -e '\:^[AD] '$volume':d' | wc -l`
-    [ $lines -eq 0 ] || abend "unexepected Duplicity listing: $lines"
-    tail -n +$start /tmp/changes$suffix.txt | sed -e 's:^\([AD]\) '$volume'/:\1 :'
+    $0 backup "$2" --dry-run | grep '^[AD] ' | sort -k 2
     ;;
   dry-run)
     $0 backup "$2" --dry-run
