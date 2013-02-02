@@ -104,13 +104,14 @@ case "$1" in
     fi
     touch "$HOME/.backups/running"
     if [ "$volume" = "daily" ]; then
-      duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+      duplicity $full -v8 \
+            --exclude-globbing-filelist "$HOME/.backups/exclude" \
             --include-globbing-filelist "$HOME/.backups/daily" \
             --exclude "**" \
             "$@" \
             "$HOME" "s3+http://archivals/$hostname/home/$volume"
     else
-      duplicity $full -v8 --exclude-regexp '[.](AppleDouble|DS_Store)' \
+      duplicity $full -v8 \
           --exclude-globbing-filelist "$HOME/.backups/exclude" \
           --include "$HOME/$volume" \
           --exclude "**" \
