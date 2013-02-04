@@ -5,9 +5,9 @@
 #
 # Oh, no wait. I can just install make, without other build tools.
 #
-# My approach is to treat my environment as a the combination of my editor and
-# shell of choice plus a prefered scripting language. My dotfiles do not
-# attempt to make one UNIX like every other.
+# My approach is to treat my environment as a combination of my editor and shell
+# of choice plus a preferred scripting language. My dotfiles do not attempt to
+# make one UNIX like every other.
 #
 # My preferred scripting language has been bash, because it's everywhere, but
 # I'm drifting over to Node.js, so that a Node.js is going to be something I'll
