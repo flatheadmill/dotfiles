@@ -46,16 +46,6 @@ strip_listing () {
   sed -e '/.DS_Store$/d' -e '/.AppleDouble/d' -e '/^$/d'
 }
 
-directory_changes () {
-  volume="$1"
-
-  $0 changes > /tmp/changes$suffix.txt
-  lines=`sed -e 's/^[AD] //' /tmp/changes$suffix.txt | sed '\:^'$directory':d' | wc -l`
-
-  echo $lines
-
-}
-
 if [ ! -e "$HOME/.backups" ]; then
   abend "error: create a list of directories to backup in $HOME/.backups"
 fi
