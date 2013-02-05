@@ -97,6 +97,7 @@ case "$1" in
     if [ "$volume" = "full" ]; then
       full="full"
       volume="$3"
+      shift;
     fi
     shift; shift
     if [ -e "$HOME/.backups.running" ]; then
