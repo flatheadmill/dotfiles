@@ -1,18 +1,18 @@
 filetype off            " reset filetype detection for pathgen to work correctly
 "call pathogen#runtime_append_all_bundles()
 set nojoinspaces        " do not add two spaces after a period 
-set expandtab           " ensure constency between editors
+set expandtab           " ensure consistency between editors
 set tabstop=2           " eight is too much, keep it short
 set shiftwidth=2        " eight is too much, keep it short
 set textwidth=80        " short lines too
 set autoindent          " make things pretty
 set modelines=1         " no longer the default?
-set visualbell          " don't distrub the neighbors
+set visualbell          " don't disturb the neighbors
 let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
 " <!--+
-"     | pretty xml coments
+"     | pretty xml comments
 "     +-->
 au BufEnter *.xml,*.xslt,*.xsl set comments=s4:<!--,mb:=-,mb:\|,ex:-->
 au BufLeave *.xml,*.xslt,*.xsl set comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
