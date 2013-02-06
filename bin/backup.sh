@@ -126,6 +126,22 @@ case "$1" in
   dry-run)
     $0 backup "$2" --dry-run
     ;;
+  verify)
+    volume="$2"
+    if [ "$volume" = "daily" ]; then
+      duplicity verify -v8 \
+        --exclude-globbing-filelist "$HOME/.backups/exclude" \
+        --include-globbing-filelist "$HOME/.backups/daily" \
+        --exclude "**" \
+        `~/.dotfiles/bin/backup.sh url`/"$volume" "$HOME"
+    else
+      duplicity_exec verify -v8 \
+        --exclude-globbing-filelist "$HOME/.backups/exclude" \
+        --include "$HOME/$volume" \
+        --exclude "**" \
+        `~/.dotfiles/bin/backup.sh url`/"$volume" "$HOME"
+    fi
+    ;;
   status)
     duplicity collection-status "s3+http://archivals/$hostname/home/$2"
     ;;
