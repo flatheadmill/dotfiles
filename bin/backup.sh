@@ -27,6 +27,16 @@ abend () {
   tidy 1
 }
 
+duplicity_version=`duplicity --version | cut -f2 -d' '`
+case $duplicity_version in
+  0.6.20)
+    break
+    ;;
+  *)
+    abend "unsupported version $duplicity_version"
+    ;;
+esac
+
 chain_end_time () {
   local collection=$1 when
   when=`duplicity collection-status s3+http://archivals/$hostname/home/$collection  \
