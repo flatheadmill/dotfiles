@@ -40,7 +40,7 @@ esac
 chain_end_time () {
   local collection=$1 when
   when=`duplicity collection-status s3+http://archivals/$hostname/home/$collection  \
-    | grep '^Chain end time: ' | sed 's/Chain end time: //'`
+    | grep '^Chain end time: ' | tail -n 1 | sed 's/Chain end time: //'`
   [ -z "$when" ] && echo 0 || date -j -f "%a %b %d %T %Y" "$when" "+%s"
 }  
 
@@ -92,6 +92,16 @@ case "$1" in
       diff /tmp/existing$suffix.txt /tmp/additions$suffix.txt | grep -q '^>' && tidy 0 || tidy 1
     fi
     ;;
+  stage)
+    volume="$2" stage="$3"; shift; shift; shift
+    duplicity -v8 \
+        --exclude-globbing-filelist "$HOME/.backups/exclude" \
+        --include "$HOME/$volume" \
+        --gpg-options="--compress-algo=bzip2 --bzip2-compress-level=9" \
+        --exclude "**" \
+        "$@" \
+        "$HOME" "file://$stage/$volume"
+    ;;
   backup)
     volume="$2"
     if [ "$volume" = "full" ]; then
@@ -106,6 +116,7 @@ case "$1" in
     touch "$HOME/.backups/running"
     if [ "$volume" = "daily" ]; then
       duplicity $full -v8 \
+            --allow-source-mismatch \
             --exclude-globbing-filelist "$HOME/.backups/exclude" \
             --include-globbing-filelist "$HOME/.backups/daily" \
             --exclude "**" \
@@ -113,6 +124,7 @@ case "$1" in
             "$HOME" "s3+http://archivals/$hostname/home/$volume"
     else
       duplicity $full -v8 \
+          --allow-source-mismatch \
           --exclude-globbing-filelist "$HOME/.backups/exclude" \
           --include "$HOME/$volume" \
           --exclude "**" \
