@@ -5,6 +5,7 @@ set expandtab           " ensure consistency between editors
 set tabstop=2           " eight is too much, keep it short
 set shiftwidth=2        " eight is too much, keep it short
 set textwidth=80        " short lines too
+set history=10000       " never forget
 set autoindent          " make things pretty
 set modelines=1         " no longer the default?
 set visualbell          " don't disturb the neighbors
