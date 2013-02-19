@@ -17,9 +17,9 @@ abend () {
 uname=`uname`
 dirname=`dirname $0`
 
-if ! which postfix > /dev/null 2>&1; then
-  abend "install Postfix with Cyrus SASL" 
-fi
+#if ! which postfix > /dev/null 2>&1; then
+#  abend "install Postfix with Cyrus SASL" 
+#fi
 
 if which yum > /dev/null && ! rpm -q cyrus-sasl-plain > /dev/null; then
   abend "install cyrus-sasl-plain" 
@@ -43,8 +43,10 @@ for file in /etc/ssl/certs/ca-bundle.crt \
             /usr/local/share/certs/ca-root-nss.crt \
             "$HOME/.usr/etc/ssl/certs/ca-bundle.crt"
 do
-  [ -e $file ] && smtp_tls_CAfile="$file"
+  [ -e $file ] && CA="smtp_tls_CAfile=$file"
 done
+
+[ -z "$CA" -a -d /etc/ssl/certs ] && CA="smtp_tls_CApath=/etc/ssl/certs"
 
 CERTDATA_URL="https://mxr.mozilla.org/mozilla/source/security/nss/lib/ckfw/builtins/certdata.txt?raw=1"
 gpg_exec () {
@@ -76,6 +78,8 @@ if [ -z "$smtp_tls_CAfile" -a "$uname" = "Darwin" ]; then
 fi
 
 cat <<EOF >> "/tmp/main$suffix.cf"
+# IPV4 only. Debian turns on IPV6.
+inet_protocols = ipv4
 
 # Relay thorugh GMail.
 relayhost=smtp.gmail.com:587
