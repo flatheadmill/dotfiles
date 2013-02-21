@@ -5,6 +5,9 @@ iso=`git log --date=iso | head -n 4 | grep '^Date:' | sed 's/Date: *//'`
 # Parsing is not part of POSIX date and GNU date parsing is different from BSD
 # parsing, so we test to see if `date` can parse an ISO year specified with `-d`
 # switch, and if not, we use BSD date syntax.
+#
+# No parsing:
+# http://pubs.opengroup.org/onlinepubs/9699919799/utilities/date.html
 
 if date -d "1970-01-01" > /dev/null 2>&1; then
   TZ=UTC date -d "$iso"
