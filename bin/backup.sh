@@ -41,7 +41,8 @@ chain_end_time () {
   local collection=$1 when
   when=`duplicity collection-status s3+http://archivals/$hostname/home/$collection  \
     | grep '^Chain end time: ' | tail -n 1 | sed 's/Chain end time: //'`
-  [ -z "$when" ] && echo 0 || date -j -f "%a %b %d %T %Y" "$when" "+%s"
+  [ -z "$when" ] && echo 0 || date -j -f "%a %b %d %T %Y" "$when" "+%s" 2>/dev/null \
+    || date -d "$when" "+%s"
 }  
 
 duplicity_base () {
