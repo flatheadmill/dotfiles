@@ -29,7 +29,7 @@ abend () {
 
 duplicity_version=`duplicity --version | cut -f2 -d' '`
 case $duplicity_version in
-  0.6.20)
+  0.6.20|0.6.18)
     break
     ;;
   *)
