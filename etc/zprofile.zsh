@@ -33,6 +33,10 @@ if ! { which node > /dev/null 2>&1; } && [ -d /node ]; then
   echo "looking for node" 
 fi
 
+if [ -d "$HOME/node_modules/.bin" ]; then
+  PATH=$PATH:$HOME/node_modules/.bin
+fi
+
 export PATH
 
 source $DOTFILES/etc/ohmy.zsh
