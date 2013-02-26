@@ -112,6 +112,8 @@ case "$1" in
       full="full"
       volume="$3"
       shift;
+    else
+      full="incremental"
     fi
     shift; shift
     if [ -e "$HOME/.backups.running" ]; then
