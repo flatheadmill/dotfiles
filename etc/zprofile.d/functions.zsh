@@ -8,8 +8,3 @@ function airbrush () {
     fc -R
   fi
 }
-
-# Launch screen with a name name and a fresh bash login.
-function scn () {
-    screen -t $1 zsh -l
-}
