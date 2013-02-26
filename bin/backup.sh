@@ -95,13 +95,16 @@ case "$1" in
     ;;
   stage)
     volume="$2" stage="$3"; shift; shift; shift
+    touch "$HOME/.backups/running"
     duplicity -v8 \
         --exclude-globbing-filelist "$HOME/.backups/exclude" \
         --include "$HOME/$volume" \
         --gpg-options="--compress-algo=bzip2 --bzip2-compress-level=9" \
         --exclude "**" \
         "$@" \
-        "$HOME" "file://$stage/$volume"
+        "$HOME" "file://$stage/$volume" \
+        | tee -a "$HOME/.backups/backup.log" | mail -s "$hostname staging of $directory on `date`" $USER
+    rm "$HOME/.backups/running"
     ;;
   backup)
     volume="$2"
