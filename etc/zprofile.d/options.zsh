@@ -3,6 +3,7 @@ setopt bash_autolist
 
 # So much easier to see that the command failed and edit it.
 unsetopt correct_all
+unsetopt correct
 
 # I don't want to automatically share history with other shells.
 unsetopt share_history
