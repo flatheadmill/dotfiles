@@ -18,6 +18,9 @@
   tree = log --graph --pretty=format:'%C(yellow)%h%Creset%C(blue)%d%Creset %C(black bold)%s%Creset %C(white bold)(by %an %ar)%Creset' --all
   type = cat-file -t
   dump = cat-file -p
+; when creating and cloning
+[init]
+  templatedir = ~/.dotfiles/etc/git.template
 ; cruft specific to my particular blend of development environment
 [core]
 	excludesfile = ~/.dotfiles/etc/gitignore
