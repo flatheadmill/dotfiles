@@ -10,3 +10,6 @@ unsetopt share_history
 
 # But, let's have the option by constantly appending to the history.
 setopt inc_append_history
+
+# Hush.
+unsetopt beep
