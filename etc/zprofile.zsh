@@ -21,8 +21,8 @@ if [ -d /opt/bin ]; then
   PATH="/opt/bin:$PATH"
 fi
 
-if [ -d /Users/alan/.usr/share/npm/bin ]; then
-  PATH=/Users/alan/.usr/share/npm/bin:$PATH
+if [ -d $HOME/.usr/share/npm/bin ]; then
+  PATH=$HOME/.usr/share/npm/bin:$PATH
 fi
 
 if [ -e ~/.usr/bin ]; then
