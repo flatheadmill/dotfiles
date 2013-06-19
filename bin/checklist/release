@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+VERSION=$1
+
+sed -e 's/$VERSION/'$VERSION'/g' <<"EOF"
+- [ ] Update change log.
+- [ ] Create a `release-$VERSION` branch using `git checkout -b release-$VERSION`.
+- [ ] Update `package.json` version to $VERSION.
+- [ ] Commit with message "Release $VERSION." Also, "Closes #<NUMBER GOES HERE>".
+- [ ] Get the timestamp with `git greenwich`. (My own little git extension.)
+- [ ] Add timestamp in `README.md`.
+- [ ] Commit timestamp in previous commit with `git commit --amend -a`.
+- [ ] Clean the working directory of cruft using `npm-cleanup`. (My own little extension.)
+- [ ] Publish with `npm publish`.
+- [ ] Tag with `git tag v$VERSION`.
+- [ ] Push to GitHub with `git push origin v$VERSION`.
+- [ ] Checkout `master` with `git checkout master`..
+- [ ] Merge with `git splice release-$VERSION`.
+- [ ] Push to GitHub with `git push origin HEAD`.
+- [ ] Delete branch with `git branch -d release-$VERSION`.
+EOF
