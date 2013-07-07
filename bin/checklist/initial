@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+cat <<"EOF"
+ - [ ] empty `index.js`.
+ - [ ] Add contribution guide.
+ - [ ] `README.md` with just one sentence.
+ - [ ] Minimal `package.json`.
+ - [ ] MIT `LICENSE` with correct year.
+ - [ ] `.gitignore`.
+ - [ ] Create an empty `diary.md`.
+ - [ ] Add a change log note to the `diary.md` about the initial commit.
+ - [ ] Create a single test.
+ - [ ] Create an Issue to publish 0.0.0 to NPM.
+EOF
