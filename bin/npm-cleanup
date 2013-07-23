@@ -1,0 +1,5 @@
+#!/bin/sh
+
+find . -depth \( -name .AppleDouble -o -name .DS_Store \) -exec rm -rf {} \;
+
+rm -rf coverage
