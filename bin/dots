@@ -12,10 +12,10 @@ zparseopts -D -- -help=usage h=usage
 DOTS_MOUNT=${$(cd ${0%/*} && echo $PWD)%/*}
 export DOTS_MOUNT
 
-fpath=( "$DOTS_MOUNT/lib/dots/lib", "${fpath[@]}" )
+hello() {
+  echo "hello, world! x"
+}
 
-#for file in $(find "$DOTS_MOUNT/lib/dots/lib" -depth 1); do
-  #autoload -Uz ${file##*/}
-#done
-
-$DOTS_MOUNT/lib/dots/lib/$@[1].*
+path="$DOTS_MOUNT/lib/dots/bin/$@[1]"
+shift
+source $path.* "$@"
