@@ -18,4 +18,4 @@ fpath=( "$DOTS_MOUNT/lib/dots/lib", "${fpath[@]}" )
   #autoload -Uz ${file##*/}
 #done
 
-zsh "$DOTS_MOUNT/lib/dots/lib/$@[1].zsh"
+$DOTS_MOUNT/lib/dots/lib/$@[1].*
