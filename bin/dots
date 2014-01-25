@@ -12,12 +12,7 @@ zparseopts -D -- -help=usage h=usage
 DOTS_MOUNT=${$(cd ${0%/*} && echo $PWD)%/*}
 export DOTS_MOUNT
 
-hello() {
-  echo "hello, world! x"
-}
-
-dots="$DOTS_MOUNT/lib/dots/lib/dots.zsh"
-export dots
+export dots="$DOTS_MOUNT/lib/dots/lib/dots.zsh"
 
 executable="$DOTS_MOUNT/lib/dots/bin/$@[1]"
 
