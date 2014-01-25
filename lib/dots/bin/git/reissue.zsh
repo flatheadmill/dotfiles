@@ -6,7 +6,7 @@ usage
 
 subject="$(git log -n 1 --pretty=format:'%s')" 
 
-number=$(dots git issue "$subject")
+number=$(dots git issue create "$subject")
 body="$(git log -n 1 --pretty=format:'%B')" 
 
 git commit --amend -F - << BODY
