@@ -16,6 +16,10 @@ hello() {
   echo "hello, world! x"
 }
 
-path="$DOTS_MOUNT/lib/dots/bin/$@[1]"
+dots="$DOTS_MOUNT/lib/dots/lib/dots.zsh"
+export dots
+
+executable="$DOTS_MOUNT/lib/dots/bin/$@[1]"
+
 shift
-source $path.* "$@"
+$executable.* "$@"
