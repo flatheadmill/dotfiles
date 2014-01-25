@@ -4,8 +4,20 @@ hello() {
   echo "hello, world"!
 }
 
-perpetuate() {
+_dots_perpetuate() {
   local executable="${1%.*}/$2"
   shift; shift
-  "$executable".* "$*"
+  "$executable".* $*
+}
+
+_dots_foo() {
+  echo "$*"
+}
+
+dots() {
+  local option=$1
+  shift;
+  which "_dots_$option" > /dev/null && {
+    "_dots_$option" $*
+  } || dots $option "$*"
 }
