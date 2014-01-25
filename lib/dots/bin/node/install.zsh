@@ -8,4 +8,4 @@ source $dots <<- usage
     Install Node.js dependencies relative to the \`dots\` library.
 usage
 
-echo "$1"
+(cd $DOTS_MOUNT/lib/dots/bin && npm install)

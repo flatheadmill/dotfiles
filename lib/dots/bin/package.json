@@ -1,0 +1,33 @@
+{
+    "name":             "dotfiles",
+    "version":          "0.0.0",
+    "author":           "Alan Gutierrez <alan@prettyrobots.com>",
+    "description":      "My dotfiles.",
+    "url":              "http://bigeasy.github.com/dotfiles",
+    "keywords":
+    [
+    ],
+    "contributors":     [],
+    "homepage":         "https://github.com/bigeasy/dotfiles",
+    "bugs":             "https://github.com/bigeasy/dotfiles/issues",
+    "licenses":
+    [{
+                        "type": "MIT",
+                        "url": "http://github.com/bigeasy/dotfiles/raw/master/LICENSE"
+    }],
+    "repository":
+    {
+                        "type": "git",
+                        "url": "http://github.com/dotfiles/advance.git"
+    },
+    "dependencies":
+    {
+                        "cadence": "0.0.33"
+    },
+    "devDependencies":
+    {
+    },
+    "scripts":
+    {
+    }
+}
