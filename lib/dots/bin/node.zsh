@@ -4,4 +4,4 @@ source $dots <<- usage
   usage: dots hello
 usage
 
-dots perpetuate $0 "$@"
+dots util perpetuate $0 "$@"

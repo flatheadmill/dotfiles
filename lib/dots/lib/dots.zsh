@@ -15,9 +15,12 @@ _dots_foo() {
 }
 
 dots() {
-  local option=$1
-  shift;
-  which "_dots_$option" > /dev/null && {
-    "_dots_$option" $*
-  } || dots $option "$*"
+  if [ "$1" = "util" ]; then
+    shift; local option=$1; shift
+    which "_dots_$option" > /dev/null && {
+      "_dots_$option" $*
+    }
+  else
+    dots $*
+  fi
 }
