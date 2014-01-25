@@ -21,6 +21,6 @@ dots() {
       "_dots_$option" $*
     }
   else
-    dots $*
+    $DOTS_MOUNT/bin/dots $*
   fi
 }
