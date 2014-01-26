@@ -4,6 +4,14 @@ source $dots <<- usage
   usage: dots git release
 usage
 
+create_release() {
+cat << BODY
+### Issue by Issue
+
+ * $1 #$2.
+BODY
+}
+
 subject="$(git log -n 1 --pretty=format:'%s')" 
 body="$(git log -n 1 --pretty=format:'%b' | grep Closes)" 
 
@@ -42,4 +50,6 @@ if [ -e release.md ]; then
       fi
     fi
   done < release.md
+else
+  create_release "$subject" "$body"
 fi

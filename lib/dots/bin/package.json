@@ -18,7 +18,7 @@
     "repository":
     {
                         "type": "git",
-                        "url": "http://github.com/dotfiles/advance.git"
+                        "url": "http://github.com/bigeasy/dotfiles.git"
     },
     "dependencies":
     {
