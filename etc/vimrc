@@ -2,8 +2,8 @@ filetype off            " reset filetype detection for pathgen to work correctly
 "call pathogen#runtime_append_all_bundles()
 set nojoinspaces        " do not add two spaces after a period 
 set expandtab           " ensure consistency between editors
-set tabstop=2           " eight is too much, keep it short
-set shiftwidth=2        " eight is too much, keep it short
+set tabstop=4           " eight is too much, keep it short
+set shiftwidth=4        " eight is too much, keep it short
 set textwidth=80        " short lines too
 set history=10000       " never forget
 set autoindent          " make things pretty
