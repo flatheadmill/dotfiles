@@ -50,6 +50,9 @@ if [ -e release.md ]; then
       fi
     fi
   done < release.md
+  if [ $written -eq 0 ]; then
+    echo " * $subject #$body."
+  fi
 else
   create_release "$subject" "$body"
 fi
