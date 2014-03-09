@@ -1,4 +1,14 @@
-usage=$(</dev/stdin)
+USAGE=$(sed 's/^  //g' </dev/stdin)
+
+usage() {
+    local code=$1
+    echo "$USAGE" 2>&1
+    echo "" 2>&1
+    if [ -z "$code" ]; then
+        code=0
+    fi
+    exit $code
+}
 
 hello() {
   echo "hello, world"!
