@@ -16,7 +16,7 @@ zparseopts -D -- -help=usage h=usage \
 [ -z "$usage" ] || usage
 [ -z "$issue" ] && usage
 
-issue=issue[2]
+issue=$issue[2]
 git add .
 git commit -m "$(dots git issue get $issue)"$'\n\nCloses #'$issue'.'
 (dots git release > release.md.bak) && mv release.md.bak release.md
