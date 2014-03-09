@@ -11,12 +11,15 @@ source $dots <<- usage
 usage
 
 zparseopts -D -- -help=usage h=usage \
-                 -message=message m=message
+                 -message:=message m:=message
 
-[ -z "$usage" ] || usage
-[ -z "$message" ] && usage
+echo "$@"
+[ -z "$usage[1]" ] || usage
+[ -z "$message[2]" ] && usage
 
-issue=$(dots git issue create -m able -l enhancement "$message")
+set -e
+
+issue=$(dots git issue create -m able -l enhancement "$message[2]")
 git add .
 git commit -m "$(dots git issue get $issue)"$'\n\nCloses #'$issue'.'
 (dots git release > release.md.bak) && mv release.md.bak release.md
