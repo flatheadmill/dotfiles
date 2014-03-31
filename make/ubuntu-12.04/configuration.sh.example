@@ -1,0 +1,10 @@
+# SMTP configuration. Has worked with GMail in the past, but I now use a
+# Mandrill acount.
+
+SMTP_USERNAME=user@domain.com
+SMTP_PASSWORD=fd7449be4872dd599f68d0eea46014e9
+SMTP_HOST=smtp.mandrillapp.com
+
+# The poor soul that we will torment with notifications.
+
+ROOT_EMAIL=user@domain.com
