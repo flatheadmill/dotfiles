@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+template=$1
+
+dir=$(cd $(dirname $0) && pwd)
+
+source $dir/configuration.sh
+
+for var in $(awk -F"=" '/^[^=]+=/ {print $1}' configuration.sh); do
+    eval "export $var"
+done
+
+bash $dir/$template
