@@ -19,8 +19,9 @@ echo "$@"
 
 set -e
 
-issue=$(dots git issue create -m able -l enhancement "$message[2]")
 git add .
+git commit --dry-run
+issue=$(dots git issue create -m able -l enhancement "$message[2]")
 git commit -m "$(dots git issue get $issue)"$'\n\nCloses #'$issue'.'
 (dots git release > release.md.bak) && mv release.md.bak release.md
 git add release.md
