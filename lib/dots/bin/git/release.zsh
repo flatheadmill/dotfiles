@@ -41,9 +41,9 @@ IFS=
 issue=
 found=0
 written=0
-if [ -e release.md ]; then
+if [ -e release.ft ]; then
   while read line; do
-    if [[ "$line" =~ "### Issue by Issue" ]]; then
+    if [[ "$line" =~ "#* Issue by Issue" ]]; then
       echo "$line"
       echo ""
       found=1
@@ -55,7 +55,7 @@ if [ -e release.md ]; then
       issue="$issue$line"
       end=$(echo $issue | grep '.*#[0-9]\+\.$')
       if ! [ -z "$end" ]; then
-        number=$(echo $end | sed -e 's/^.*#\([0-9][0-9]*\).*$/\1/')
+        number=$(echo $end | sed -e 's/^.*#*\([0-9][0-9]*\).*$/\1/')
         if [ $number -lt $body -a $written = 0 ]; then
           echo " * $subject #$body."
           written=1
@@ -64,7 +64,7 @@ if [ -e release.md ]; then
         issue=
       fi
     fi
-  done < release.md
+  done < release.ft
   if [ $written -eq 0 ]; then
     echo " * $subject #$body."
   fi
