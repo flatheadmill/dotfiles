@@ -1,5 +1,6 @@
 ### Issue by Issue
 
+ * Create utility to get `package.json` version. #37.
  * Rename `dots travis open` to `dots travis url` #36.
  * Rename `dots git open` to `dots git url` #35.
  * Print Circle CI url from Node.js project. #34.
