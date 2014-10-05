@@ -1,4 +1,5 @@
 ### Issue by Issue
 
+ * Rename `dots git open` to `dots git url` #35.
  * Print Circle CI url from Node.js project. #34.
  * Print Travis CI url from Node.js project. #33.
