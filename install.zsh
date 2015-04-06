@@ -25,7 +25,7 @@ if [ $? -ne 0 ]; then
   abend "git is not installed"
 fi
 git_version="${git_version#git version }"
-if ! { [[  "$git_version" == 1.[8-9].* ]] || [[ "$git_version" == 1.7.1[0-9].* ]]; }; then
+if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "$git_version" == 1.7.1[0-9].* ]]; }; then
   abend "git is at version $git_version but must be at least 1.7.10"
 fi
 
