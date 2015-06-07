@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 source $dots <<- usage
-  usage: dots fu add <name> <number>
+  usage: dots fu add <name>
   
   options:
     
@@ -19,11 +19,8 @@ zparseopts -D -- -help=usage h=usage \
 
 [ -z "$usage" ] || usage
 name=$1
-number=$2
-[ ! -z "$name" ] && [ ! -z "$number" ] || usage
+[ ! -z "$name" ] || usage
 
-export HISTFILE=~/.zsh_history 
-fc -R
-command=$(fc -l $number $number)
-[[ $command =~ ' *[0-9]+ +(.*)' ]] && command=$match[1]
+command=`head -n 1 | sed 's/ *[0-9][0-9]* *//'`
+
 echo "$name $command" >> ~/git/.dotfiles-fu
