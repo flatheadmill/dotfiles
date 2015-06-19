@@ -40,11 +40,9 @@ if ! [ -e "$HOME/.oh-my-zsh" ]; then
 fi
 
 # We set this in our `~/.dotfiles/zprofile.zsh`.
-sed -i -e 's/^ZSH_THEME/# ZSH_THEME/' ~/.zshrc
-sed -i -e 's/^plugins/# plugins/' ~/.zshrc
-
-# The generated `.zshrc` writes the path that was set at the time of generation.
-sed -i -e 's/^PATH/# PATH/' ~/.zshrc
+echo '. ~/.dotfiles/etc/zshenv.zsh' > ~/.zshenv
+echo '. ~/.dotfiles/etc/zprofile.zsh' > ~/.zprofile
+echo '. ~/.dotfiles/etc/zshrc.zsh' > ~/.zshrc
 
 if ! [ -e "$HOME/.dotfiles" ]; then
   git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
