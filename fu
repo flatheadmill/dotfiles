@@ -1,0 +1,6 @@
+docker-rmis docker images | grep "$1" | awk '{ print $1":"$2 }' | xargs docker rmi
+docker-ago docker ps -a | grep "$1 ago" | awk '{print $1}' | xargs docker rm
+docker-kill docker ps -a | awk 'NR > 1 && $(NF) !~ /homeport/ { print $1 }' | xargs -n 1 docker kill
+docker-rm docker ps -a | awk 'NR > 1 && $(NF) !~ /homeport/ { print $1 }' | xargs -n 1 docker rm
+docker-curl curl 'http://'$(boot2docker ip):$1$2
+git-working for file in $(find . -type d -depth 1); do (cd $file && test -d .git && echo $file && git status); done
