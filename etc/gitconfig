@@ -1,9 +1,3 @@
-; identity
-[user]
-	name = Alan Gutierrez
-	email = alan@prettyrobots.com
-[github]
-	user = bigeasy
 ; aesthetics
 [color]
   ui = true
