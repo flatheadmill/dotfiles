@@ -22,8 +22,8 @@
     },
     "dependencies":
     {
-                        "cadence": "0.0.33",
-                        "arguable": "0.0.16",
+                        "cadence": "0.4.1",
+                        "arguable": "0.0.37",
                         "node-github": "0.0.3"
     },
     "devDependencies":
