@@ -9,9 +9,20 @@ source $dots <<- usage
 usage
 
 version=$(dots node version)
-majmin=${version%.*}
-micro=${version##*.}
-bump=$majmin.$(( $micro + 1 ))
+if [ "$1" = "major" ]; then
+    major=${version%%.*}
+    bump=$(( $major + 1 )).0.0
+elif [ "$1" = "minor" ]; then
+    major=${version%%.*}
+    minor=${version#*.}
+    minor=${minor%.*}
+    echo $minor
+    bump=$major.$(( $minor + 1 )).0
+else
+    majmin=${version%.*}
+    micro=${version##*.}
+    bump=$majmin.$(( $micro + 1 ))
+fi
 
 echo "$version -> $bump"
 sed 's/\("version":.*"\)'$version'/\1'$bump'/' package.json > package.json.tmp
