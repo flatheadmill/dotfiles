@@ -48,7 +48,6 @@ if [ -z "$title" ]; then
 fi
 
 echo "$title $prefix$version -> $prefix$bump"
-exit
 sed 's/\("version":.*"\)'$version'/\1'$bump'/' package.json > package.json.tmp
 mv package.json.tmp package.json
 git add .
