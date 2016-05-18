@@ -71,6 +71,10 @@ if [ -z "$title" ]; then
     done
 fi
 
+if ! git diff-index --quiet HEAD --; then
+    echo "Work tree must be clean." 1>&2
+    exit 1
+fi
 echo "$title $prefix$version -> $prefix$bump"
 [ "$dry_run" -eq 1 ] && exit
 sed 's/\("version":.*"\)'$version'/\1'$bump'/' package.json > package.json.tmp
