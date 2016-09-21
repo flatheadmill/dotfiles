@@ -10,13 +10,16 @@ source $dots <<- usage
     Bump version number and publish a release.
 usage
 
-zparseopts -a opts -D -- -help h -title: t: -prefix: p: -version: v: d -dry-run
+zparseopts -a opts -D -- -help h -title: t: -prefix: p: -version: v: d -dry-run I -issueless
 
 index=1
 while [ $index -le $#opts ]; do
     case "${opts[$index]}" in
         -h|--help)
             echo help
+            ;;
+        -I|--issueless)
+            issueless=1
             ;;
         -d|--dry-run)
             dry_run=1
@@ -66,6 +69,7 @@ if [ -z "$title" ]; then
     title='' separator=''
     parts=(${(s:.:)name})
     for part in $parts; do
+        part=${part#@*/}
         title="$title$separator${(C)part[1,1]}$part[2,-1]"
         separator=' '
     done
@@ -81,8 +85,12 @@ sed 's/\("version":.*"\)'$version'/\1'$bump'/' package.json > package.json.tmp
 mv package.json.tmp package.json
 git add .
 git commit --dry-run
-issue=$(dots git issue create -m able -l enhancement "Release $title version $bump.")
-git commit -m "Release $title $bump."$'\n\nCloses #'$issue'.'
+if [ "$issueless" -eq 1 ]; then
+    git commit -m "Release $title $bump."
+else
+    issue=$(dots git issue create -m able -l enhancement "Release $title version $bump.")
+    git commit -m "Release $title $bump."$'\n\nCloses #'$issue'.'
+fi
 git push origin HEAD
 git tag "$prefix$bump"
 git push origin --tags
