@@ -1,2 +1,4 @@
 /lib/dots/bin/node_modules
 /make/*/configuration.sh
+/rc
+/replaced

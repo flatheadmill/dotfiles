@@ -1,0 +1,4 @@
+[include]
+  path = ~/.dotfiles/etc/gitconfig
+[include]
+  path = ~/.dotfiles/rc/gitconfig

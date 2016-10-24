@@ -1,20 +1,5 @@
 #!/usr/bin/env zsh
 
-# Installation of ~bigeasy/dotfiles. At first I thought I'd use a Makefile, but
-# I might want to administer a server where build tools are not installed.
-#
-# Oh, no wait. I can just install make, without other build tools.
-#
-# My approach is to treat my environment as a combination of my editor and shell
-# of choice plus a preferred scripting language. My dotfiles do not attempt to
-# make one UNIX like every other.
-#
-# My preferred scripting language has been bash, because it's everywhere, but
-# I'm drifting over to Node.js, so that a Node.js is going to be something I'll
-# want to install on every machine I work with.
-#
-# Looks as though I've decided to make a `curl | bash` installer.
-
 # Simple indempotent instllation.
 #
 # First, replace all rc files with a template file and over write it. Do this
@@ -42,8 +27,6 @@ if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "
   abend "git is at version $git_version but must be at least 1.7.10"
 fi
 
-DOTFILES="$HOME/.dotfiles"
-
 if [ $(basename $SHELL) != "zsh" ]; then
   abend "change your shell to zsh before running install"
 fi
@@ -52,15 +35,46 @@ if ! [ -e "$HOME/.oh-my-zsh" ]; then
   curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
 fi
 
-# We set this in our `~/.dotfiles/zprofile.zsh`.
-echo '. ~/.dotfiles/etc/zshenv.zsh' > ~/.zshenv
-echo '. ~/.dotfiles/etc/zprofile.zsh' > ~/.zprofile
-echo '. ~/.dotfiles/etc/zshrc.zsh' > ~/.zshrc
-
 if ! [ -e "$HOME/.dotfiles" ]; then
-  git clone git://github.com/bigeasy/dotfiles.git "$DOTFILES"
+  git clone git://github.com/bigeasy/dotfiles.git "$HOME/.dotfiles"
 fi
 
-rsync -a "$DOTFILES/home/unix/" "$HOME/"
+stamp=$(date +'%F-%T' | sed 's/:/-/g')
 
-[ -e "$DOTFILES/home/$(uname)" ] && rsync -a "$DOTFILES/home/$(uname)/" "$HOME/"
+function create_rc () {
+    local home_file=$1 skel_file=$2
+    local home_path="$HOME/$home_file"
+    local skel_path="$HOME/.dotfiles/skel/$skel_file"
+    if [ -e "$home_path" ] && ! diff "$home_path" "$skel_path" > /dev/null; then
+        mkdir -p "$HOME/.dotfiles/replaced/$stamp"
+        mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
+        cp "$skel_path" "$home_path"
+    fi
+    local local_path="$HOME/.dotfiles/rc/$skel_file"
+    if [ ! -e "$local_path" ]; then
+        touch "$local_path"
+    fi
+}
+
+create_rc .zshenv zshenv.zsh
+create_rc .zprofile zprofile.zsh
+create_rc .zshrc zshrc.zsh
+create_rc .tmux.conf tmux.conf
+create_rc .gitconfig gitconfig
+create_rc .vimrc vimrc
+
+if [ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]; then
+cat <<EOF
+Existing configuration files where replaced. The replaced files have been
+moved to:
+
+  ~/.dotfiles/replaced/$stamp
+
+Fish out anything you want to keep and move it to the file with the same name in
+the directory:
+
+  ~/.dotfiles/rc
+
+This is where your machine specific settings should be kept.
+EOF
+fi
