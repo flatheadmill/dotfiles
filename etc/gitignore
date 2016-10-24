@@ -3,3 +3,4 @@
 .AppleDouble
 *.swp
 /.imdone
+.tmux.run.sh
