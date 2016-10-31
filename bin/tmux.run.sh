@@ -41,14 +41,14 @@ function tmux_run_is_running () {
 }
 
 # Utility to send a signal to all the processes in the process group.
-function tmux_run_signal () {
+function tmux_run_kill () {
     local signal=$1
     [ -z "$signal" ] && signal=TERM
-    echo perl "$tmux_run_path/_tmux.setpgrp.pl" "$tmux_run_path/_tmux.signal.sh" $signal
+    echo perl "$tmux_run_path/tmux.setpgrp.pl" "$tmux_run_path/tmux.kill.sh" $signal
 }
 
 # Export utilities.
-export -f tmux_run_is_running tmux_run_signal
+export -f tmux_run_is_running tmux_run_kill
 
 if [ -e ~/.tmux.run.rc ]; then
     . ~/.tmux.run.rc
@@ -73,7 +73,7 @@ wait $!
 
 # Wait for everyone in the process group to finish.
 while true; do
-    pids=$(perl "$tmux_run_path/_tmux.setpgrp.pl" "$tmux_run_path/_tmux.children.sh" ${psaxo[@]})
+    pids=$(perl "$tmux_run_path/tmux.setpgrp.pl" "$tmux_run_path/tmux.children.sh" ${psaxo[@]})
     [ -z "$pids" ] && break
     sleep 0.25
 done
