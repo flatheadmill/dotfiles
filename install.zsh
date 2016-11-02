@@ -52,6 +52,7 @@ function create_rc () {
     fi
     local local_path="$HOME/.dotfiles/rc/$skel_file"
     if [ ! -e "$local_path" ]; then
+        mkdir -p "$HOME/.dotfiles/rc"
         touch "$local_path"
     fi
 }
