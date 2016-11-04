@@ -48,8 +48,8 @@ function create_rc () {
     if [ -e "$home_path" ] && ! diff "$home_path" "$skel_path" > /dev/null; then
         mkdir -p "$HOME/.dotfiles/replaced/$stamp"
         mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
-        cp "$skel_path" "$home_path"
     fi
+    cp "$skel_path" "$home_path"
     local local_path="$HOME/.dotfiles/rc/$skel_file"
     if [ ! -e "$local_path" ]; then
         mkdir -p "$HOME/.dotfiles/rc"
