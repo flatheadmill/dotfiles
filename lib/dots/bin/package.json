@@ -1,31 +1,26 @@
 {
-    "name":             "dotfiles",
-    "version":          "0.0.0",
-    "author":           "Alan Gutierrez <alan@prettyrobots.com>",
-    "description":      "My dotfiles.",
-    "url":              "http://bigeasy.github.com/dotfiles",
-    "keywords":
-    [
-    ],
-    "contributors":     [],
-    "homepage":         "https://github.com/bigeasy/dotfiles",
-    "bugs":             "https://github.com/bigeasy/dotfiles/issues",
-    "licenses":
-    [{
-                        "type": "MIT",
-                        "url": "http://github.com/bigeasy/dotfiles/raw/master/LICENSE"
-    }],
+    "name":                 "dotfiles",
+    "version":              "0.0.0",
+    "description":
+
+      "My dotfiles.",
+
+    "keywords":             [],
+    "author":               "Alan Gutierrez <alan@prettyrobots.com>",
+    "contributors":         [],
+    "homepage":             "https://github.com/bigeasy/dotfiles",
+    "bugs":                 "https://github.com/bigeasy/dotfiles/issues",
     "repository":
     {
-                        "type": "git",
-                        "url": "http://github.com/bigeasy/dotfiles.git"
+                            "type": "git",
+                            "url": "http://github.com/bigeasy/dotfiles.git"
     },
     "dependencies":
     {
-                        "cadence": "1.0.1",
-                        "arguable": "5.0.x",
-                        "node-github": "0.0.3",
-                        "programmatic": "0.0.x"
+                            "arguable":                     "5.0.x",
+                            "cadence":                      "1.0.1",
+                            "node-github":                  "0.0.3",
+                            "programmatic":                 "0.0.x"
     },
     "devDependencies":
     {
