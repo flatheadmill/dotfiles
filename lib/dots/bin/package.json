@@ -23,7 +23,7 @@
     "dependencies":
     {
                         "cadence": "0.4.1",
-                        "arguable": "0.0.37",
+                        "arguable": "5.0.x",
                         "node-github": "0.0.3",
                         "programmatic": "0.0.x"
     },
