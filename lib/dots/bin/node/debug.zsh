@@ -9,10 +9,10 @@ source $dots <<- usage
 usage
 
 function shutdown() {
-    [ -z "$(jobs -p)" ] || kill "$(jobs -p)"
+    kill -9 "$debug"
 }
 
-trap shutdown EXIT
+trap shutdown TERM INT
 
 script=$1
 
@@ -21,5 +21,6 @@ if [ -z "$script" ]; then
 fi
 
 node --debug-brk "$script" &
+debug=$?
 
 node_modules/.bin/node-inspector
