@@ -83,11 +83,12 @@ if [ -z "$bump" ]; then
             bump="${bump}-${2}.0"
             ;;
     esac
-    if [[ "$bump" != *-* ]]; then
-        major=${bump%%.*}
-        if [ "$major" -eq 0 ] || [ "$(( $major % 2 ))" -eq 1 ]; then
-            tag=latest
-        fi
+fi
+
+if [[ "$bump" != *-* ]]; then
+    major=${bump%%.*}
+    if [ "$major" -eq 0 ] || [ "$(( $major % 2 ))" -eq 1 ]; then
+        tag=latest
     fi
 fi
 
