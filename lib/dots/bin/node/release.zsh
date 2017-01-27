@@ -87,8 +87,16 @@ fi
 
 if [[ "$bump" != *-* ]]; then
     major=${bump%%.*}
-    if [ "$major" -eq 0 ] || [ "$(( $major % 2 ))" -eq 1 ]; then
+    if [ "$major" -eq 0 ]; then
         tag=latest
+    elif [ $(( $major % 2 )) -eq 1 ]; then
+        minor=${bump#*.}
+        minor=${minor%%.*}
+        if [[ $(( $minor % 2 )) -eq 0 ]]; then
+            tag=latest
+        else
+            tag=dev
+        fi
     fi
 fi
 
