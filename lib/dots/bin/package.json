@@ -19,8 +19,10 @@
     {
                             "arguable":                     "5.0.x",
                             "cadence":                      "1.0.1",
+                            "delta":                        "1.2.x",
                             "node-github":                  "0.0.3",
-                            "programmatic":                 "0.0.x"
+                            "programmatic":                 "0.0.x",
+                            "semver":                       "5.3.x"
     },
     "devDependencies":
     {

@@ -8,13 +8,56 @@ source $dots <<- usage
     Bump version number and publish a release.
 usage
 
+zparseopts -a opts -D -- -help h -title: t: -version: v: d -dry-run
+
+index=1
+while [ $index -le $#opts ]; do
+    case "${opts[$index]}" in
+        -h|--help)
+            echo help
+            ;;
+        -d|--dry-run)
+            dry_run=1
+            ;;
+        -t|--title)
+            let index+=1
+            title=$opts[$index]
+            ;;
+        -v|--version)
+            let index+=1
+            bump=$opts[$index]
+            ;;
+    esac
+    let index+=1
+done
+
 package=$1
 
-while read -r wanted latest; do
-    echo "$wanted -> $latest"
-    sed 's/\("'"$package"'":.*"\)'"$wanted"'/\1'"$latest"'/' package.json > package.json.tmp
-    mv package.json.tmp package.json
-    rm -rf node_modules
-    npm install && npm test && \
-        git commit -a -m 'Upgrade `'"$package"'` to '"$latest"'.'
-done < <(npm outdated | tail +2 | awk -v package=$1 'package == $1 { print $3, $4 }')
+
+if [ -z "$title" ]; then
+    title='' separator=''
+    parts=(${(s:.:)package})
+    for part in $parts; do
+        part=${part#@*/}
+        title="$title$separator${(C)part[1,1]}$part[2,-1]"
+        separator=' '
+    done
+fi
+
+if [ -z "$version" ]; then
+    version=$(dots node latest < <(npm info $package --json))
+    if [[ "$version" != 0.* ]]; then
+        version=${version%.*}.x
+    fi
+fi
+
+current=$(jq -r --arg key $package \
+    '.dependencies | to_entries[] | select(.key == $key) | .value' < package.json)
+
+echo "$title $current -> $version"
+[ "$dry_run" -eq 1 ] && exit
+
+sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$version'"/' package.json  > package.tmp.json
+mv package.tmp.json package.json
+
+git commit -a -m 'Upgrade `'$package'` to '$version'.'
