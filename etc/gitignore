@@ -4,3 +4,4 @@
 *.swp
 /.imdone
 .tmux.run.sh
+npm-debug.log
