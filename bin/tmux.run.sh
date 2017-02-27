@@ -68,6 +68,23 @@ else
     "$program" >> ~/.usr/tmp/tmux.run.log 2>&1 &
 fi
 
+# Funny story. In a program I was launching a child in the background and
+# getting the pid using `server=$?` instead of `server=$!` . The value of `$?`
+# was `0` at that point in the program.  Then at the end of the program I kill
+# the server so I `kill 0`. This meant that this script would exit here, after
+# the program but before the wait.
+#
+# This left the PID file on the filesystem preventing me from running this
+# script again without checking that the PID was indeed gone and removing it
+# manually.
+#
+# Disheartening to find it exiting here when I'd yet to determine the cause. It
+# seems like this utility has run without incident since I created it. When I
+# found that I wasn't killing the background process, but was instead killing
+# `0`. `kill 0` sends a `TERM` to all the members of the process group, so of
+# course this program exited immediately. It was in the `wait` and it got a
+# `TERM`. Going to leave this note here. The for the next time it happens.
+
 # Wait for the script to finish.
 wait $!
 
