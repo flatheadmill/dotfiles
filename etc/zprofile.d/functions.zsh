@@ -22,3 +22,7 @@ function cdf () {
 function kill9job () {
    jobs -l %$1  | sed 's/^\[.*\][^0-9]*\([0-9]*\).*/\1/' | xargs pkill -9 -g
 }
+
+function jobpid () {
+   jobs -l %$1  | sed 's/^\[.*\][^0-9]*\([0-9]*\).*/\1/'
+}
