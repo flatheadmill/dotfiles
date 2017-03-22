@@ -18,3 +18,7 @@ function cdf () {
         echo 'No Finder window found' >&2
     fi
 }
+
+function kill9job () {
+   jobs -l %$1  | sed 's/^\[.*\][^0-9]*\([0-9]*\).*/\1/' | xargs pkill -9 -g
+}
