@@ -13,3 +13,6 @@ setopt inc_append_history
 
 # Hush.
 unsetopt beep
+
+# Easier to grep history file.
+unsetopt extended_history
