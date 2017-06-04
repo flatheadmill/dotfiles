@@ -44,15 +44,15 @@ if [ -z "$title" ]; then
     done
 fi
 
+current=$(jq -r --arg key $package \
+    '.dependencies | to_entries[] | select(.key == $key) | .value' < package.json)
+
 if [ -z "$version" ]; then
     version=$(dots node latest < <(npm info $package --json))
-    if [[ "$version" != 0.* ]]; then
+    if [[ "$current" = *.x ]]; then
         version=${version%.*}.x
     fi
 fi
-
-current=$(jq -r --arg key $package \
-    '.dependencies | to_entries[] | select(.key == $key) | .value' < package.json)
 
 echo "$title $current -> $version"
 [ "$dry_run" -eq 1 ] && exit
