@@ -45,7 +45,7 @@ if [ -z "$title" ]; then
 fi
 
 current=$(jq -r --arg key $package \
-    '.dependencies | to_entries[] | select(.key == $key) | .value' < package.json)
+    '[(.devDependencies | to_entries[]), (.dependencies | to_entries[])][] | select(.key == $key) | .value' < package.json)
 
 if [ -z "$version" ]; then
     version=$(dots node latest < <(npm info $package --json))
