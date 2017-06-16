@@ -85,15 +85,18 @@ if [ -z "$bump" ]; then
     esac
 fi
 
+untag=()
 if [[ "$bump" != *-* ]]; then
     major=${bump%%.*}
     if [ "$major" -eq 0 ]; then
         tag=latest
+        untag+=('dev' 'canary')
     elif [ $(( $major % 2 )) -eq 1 ]; then
         minor=${bump#*.}
         minor=${minor%%.*}
         if [[ $(( $minor % 2 )) -eq 0 ]]; then
             tag=latest
+            untag+=('dev')
         else
             tag=dev
         fi
@@ -138,3 +141,6 @@ git push origin HEAD
 git tag "$prefix$bump"
 git push origin --tags
 npm publish --tag "$tag"
+for tag in "${untag[@]}"; do
+    npm dist-tag rm "$tag"
+done
