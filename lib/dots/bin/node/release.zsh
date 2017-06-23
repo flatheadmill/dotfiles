@@ -96,8 +96,9 @@ if [[ "$bump" != *-* ]]; then
         minor=${minor%%.*}
         if [[ $(( $minor % 2 )) -eq 0 ]]; then
             tag=latest
-            untag+=('dev')
+            untag+=('dev' 'canary')
         else
+            untag+=('canary')
             tag=dev
         fi
     fi
@@ -142,5 +143,7 @@ git tag "$prefix$bump"
 git push origin --tags
 npm publish --tag "$tag"
 for tag in "${untag[@]}"; do
-    npm dist-tag rm "$tag"
+    npm info "$name" --json | jq -e --arg tag $tag -r '
+        .["dist-tags"] | [to_entries[] | select(.key == $tag)] | length == 1
+    ' > /dev/null && npm dist-tag rm "$name" "$tag" || echo "no existing $tag tag"
 done
