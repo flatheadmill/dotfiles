@@ -51,3 +51,25 @@ autocmd BufReadPost *
 
 au BufRead,BufNewFile jquery.ui.*.js set ts=8 tw=0 noet nowrap
 au BufRead,BufNewFile *.markdown,*.md set com=
+
+" newer stuff
+call plug#begin('~/.vim/plugged')
+
+Plug 'junegunn/seoul256.vim'
+Plug 'junegunn/limelight.vim'
+Plug 'junegunn/goyo.vim'
+
+call plug#end()
+
+" Unified color scheme (default: dark)
+" colo seoul256
+
+" Light color scheme
+" colo seoul256-light
+
+" Switch
+"set background=dark
+"set background=light
+
+autocmd! User GoyoEnter Limelight
+autocmd! User GoyoLeave Limelight!
