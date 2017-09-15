@@ -20,6 +20,10 @@ if [ -z "$script" ]; then
     usage 1
 fi
 
+if [[ ! -x node_modules/.bin/node-inspector ]]; then
+    abend 'you need to `npm install node-inspector`'
+fi
+
 node --debug-brk "$script" &
 debug=$?
 

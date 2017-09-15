@@ -10,6 +10,12 @@ usage() {
     exit $code
 }
 
+abend() {
+    local message=$1
+    echo "error: $message" 2>&1
+    exit 1
+}
+
 hello() {
   echo "hello, world"!
 }
