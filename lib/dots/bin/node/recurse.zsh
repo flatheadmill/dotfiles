@@ -96,9 +96,18 @@ function status_inspect_dependencies () {
         fi
         if [[ "$package" = *.* ]]; then
             parent=${package%.*}
-            if [[ ! -z "$(ls -d ${root}../../*/$parent/$package 2> /dev/null)" ]]; then
+            # http://www.refining-linux.org/archives/37/ZSH-Gem-2-Extended-globbing-and-expansion/
+            #
+            # Sought a way to use expansion in a conditional. Could as easily
+            # have read the expansion into an array, then tested the array, then
+            # used the array value if it passed the test. The EXTENDED_GLOB
+            # solution looks interesting but as noted in the accepted response,
+            # I don't want to set switches if I don't have to.
+            #
+            # https://stackoverflow.com/questions/41502846/zsh-test-whether-a-file-matching-a-pattern-exists
+            if [[ -n $(echo ${root}../../*/$parent/$package(NY1)) ]]; then
                 dir=$(ls -d ${root}../../*/$parent/$package)
-            elif [[ ! -z "$(ls -d ${root}../../$parent/$package 2> /dev/null)" ]]; then
+            elif [[ -n $(echo ${root}../../$parent/$package(NY1)) ]]; then
                 dir=$(ls -d ${root}../../$parent/$package)
             else
                 pwd
