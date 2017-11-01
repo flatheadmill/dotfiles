@@ -14,5 +14,4 @@ jq -e '
 
 if [ $? -ne 0 ]; then
     node_modules/.bin/istanbul report --format text    
-    exit 1
 fi
