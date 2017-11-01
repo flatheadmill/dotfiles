@@ -13,8 +13,9 @@ usage
 set -e
 
 o_expire=(-e 10)
+o_package=()
 
-zparseopts -K -D -a o_dist d+: -dist+: -e:=o_expire
+zparseopts -K -D -a o_dist d+: -dist+: -e:=o_expire p+:=o_package
 
 if [[ ${#o_dist} -eq 0 ]]; then
     o_dist=(-d latest)
@@ -34,11 +35,22 @@ function status_get_packages () {
 typeset -A packages
 packages=($(status_get_packages package.json dependencies) $(status_get_packages package.json devDependencies))
 
+typeset -A i_packages
+if [[ ${#o_package} -eq 0 ]]; then
+    i_packages=(${(kv)packages})
+else
+    i_packages=(${(Oa)o_package})
+fi
+
 CACHE=~/.usr/var/cache/dots/node/outdated/dist-tags
 
+find "$CACHE" -type f -mmin +"$o_expire[2]" -print
 find "$CACHE" -type f -mmin +"$o_expire[2]" -exec rm {} \;
 
 for dependency in ${(k)packages}; do
+    if ! (( $+i_packages[$dependency] )); then
+        continue
+    fi
     package=node_modules/$dependency/package.json
     if [[ ! -e "$package" ]]; then
         print -u2 "$package not installed"
