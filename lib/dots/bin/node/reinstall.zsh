@@ -5,7 +5,7 @@ if [[ -d node_modules ]]; then
     while read -r line; do
         print will relink ${line#node_modules/}
         links+=($line)
-    done < <(find node_modules -type l -path 'node_modules/*' -not -path 'node_modules/.bin/*')
+    done < <(find node_modules -name .bin -prune -o -type l -print)
 fi
 
 rm -rf node_modules
