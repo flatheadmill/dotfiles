@@ -44,7 +44,6 @@ fi
 
 CACHE=~/.usr/var/cache/dots/node/outdated/dist-tags
 
-find "$CACHE" -type f -mmin +"$o_expire[2]" -print
 find "$CACHE" -type f -mmin +"$o_expire[2]" -exec rm {} \;
 
 for dependency in ${(k)packages}; do
