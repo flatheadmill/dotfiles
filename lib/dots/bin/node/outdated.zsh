@@ -61,7 +61,7 @@ for dependency in ${(k)packages}; do
     info="$CACHE"/"$dependency"/dist-tags.json 
     mkdir -p "${info%/*}"
     if [[ ! -e "$info" ]]; then
-        cp =(npm view "$dependency" dist-tags --json) "$info"
+        mv =(npm view "$dependency" dist-tags --json) "$info"
     fi
     typeset -A tags
     tags=($(jq -r '[ . | to_entries[] | .key, .value ] | join(" ")' < "$info"))
