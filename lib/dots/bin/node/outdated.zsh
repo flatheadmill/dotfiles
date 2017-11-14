@@ -15,7 +15,7 @@ set -e
 o_expire=(-e 10)
 o_package=()
 
-zparseopts -K -D -a o_dist d+: -dist+: -e:=o_expire p+:=o_package
+zparseopts -K -D -a o_dist d+: -dist+: e:=o_expire p+:=o_package
 
 if [[ ${#o_dist} -eq 0 ]]; then
     o_dist=(-d latest)
