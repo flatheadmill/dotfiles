@@ -14,8 +14,9 @@ set -e
 
 o_expire=(-e 10)
 o_package=()
+o_sort=()
 
-zparseopts -K -D -a o_dist d+: -dist+: e:=o_expire p+:=o_package
+zparseopts -K -D -a o_dist d+: -dist+: e:=o_expire p+:=o_package g=o_greatest
 
 if [[ ${#o_dist} -eq 0 ]]; then
     o_dist=(-d latest)
@@ -48,6 +49,8 @@ mkdir -p "$CACHE"
 
 find "$CACHE" -type f -mmin +"$o_expire[2]" -exec rm {} \;
 
+SORT=$(which gsort || which sort)
+
 for dependency in ${(k)packages}; do
     if ! (( $+i_packages[$dependency] )); then
         continue
@@ -65,6 +68,9 @@ for dependency in ${(k)packages}; do
     fi
     typeset -A tags
     tags=($(jq -r '[ . | to_entries[] | .key, .value ] | join(" ")' < "$info"))
+    if [[ -n "${o_greatest[1]}" ]]; then
+        tags=($({ $SORT -k 2Vr | head -n 1; } < <(for k v in  ${(kv)tags}; do echo $k $v; done)))
+    fi
     found=0
     for dist in ${(k)dists}; do
         if [[ $version = $tags[$dist] ]]; then
