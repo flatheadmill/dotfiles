@@ -47,13 +47,13 @@ zparseopts -D -a o_skip s+: -skip+:
 typeset -A skip
 skip=(${(Oa)o_skip})
 
-
-
 function abend () {
     local message=$1
     echo "$message" 1>&2
     exit 1
 }
+
+// TODO why `status_`?
 
 function status_get_packages () {
     local property=$1
@@ -90,8 +90,8 @@ function status_inspect_dependencies () {
     fi
     for package in $(status_get_packages dependencies; status_get_packages devDependencies); do
         [[ -e node_modules/$package/package.json ]] || abend '`'$package'` not installed in `'`pwd`'`.'
-        local user=$(jq -r '.author.email' <  node_modules/$package/package.json) 
-        if [[ "$user" != "alan@prettyrobots.com" ]]; then
+        local repository=$(jq -r '.repository.url' <  node_modules/$package/package.json) 
+        if ! [[ "$repository" ~= ^bigeasy/ ]]; then
             continue
         fi
         if [[ "$package" = *.* ]]; then
