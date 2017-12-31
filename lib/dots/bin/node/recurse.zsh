@@ -53,7 +53,7 @@ function abend () {
     exit 1
 }
 
-// TODO why `status_`?
+# TODO why `status_`?
 
 function status_get_packages () {
     local property=$1
