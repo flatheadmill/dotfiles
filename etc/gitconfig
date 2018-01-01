@@ -22,7 +22,8 @@
   whitespace = trailing-space,space-before-tab,tab-in-indent
 ; oft typed urls
 [url "git@github.com:bigeasy/"]
-  insteadof = bigeasy:
+  insteadOf = bigeasy:
+  insteadOf = git://github.com/bigeasy/
 ; attempt to push read-only repos back to git if you can
 [url "git@github.com:"]
   pushInsteadOf = https://github.com/
