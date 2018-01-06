@@ -92,11 +92,16 @@ function status_inspect_dependencies () {
         [[ -e node_modules/$package/package.json ]] || abend '`'$package'` not installed in `'`pwd`'`.'
         email=$(
             jq '
-                if .author | type == "object" then
-                    .author.email == "alan@prettyrobots.com"
+                if .author == null then
+                    false
                 else
-                    .author | test(".*<alan@prettyrobots.com>$")
-            end' < node_modules/$package/package.json
+                    if .author | type == "object" then
+                        .author.email == "alan@prettyrobots.com"
+                    else
+                        .author | test(".*<alan@prettyrobots.com>$")
+                    end
+                end
+            ' < node_modules/$package/package.json
         )
         if [[ "$email" != 'true' ]]; then
             continue
