@@ -53,7 +53,7 @@ function abend () {
     exit 1
 }
 
-// TODO why `status_`?
+# TODO why `status_`?
 
 function status_get_packages () {
     local property=$1
@@ -90,8 +90,20 @@ function status_inspect_dependencies () {
     fi
     for package in $(status_get_packages dependencies; status_get_packages devDependencies); do
         [[ -e node_modules/$package/package.json ]] || abend '`'$package'` not installed in `'`pwd`'`.'
-        local repository=$(jq -r '.repository.url' <  node_modules/$package/package.json) 
-        if ! [[ "$repository" ~= ^bigeasy/ ]]; then
+        email=$(
+            jq '
+                if .author == null then
+                    false
+                else
+                    if .author | type == "object" then
+                        .author.email == "alan@prettyrobots.com"
+                    else
+                        .author | test(".*<alan@prettyrobots.com>$")
+                    end
+                end
+            ' < node_modules/$package/package.json
+        )
+        if [[ "$email" != 'true' ]]; then
             continue
         fi
         if [[ "$package" = *.* ]]; then
