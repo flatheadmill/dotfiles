@@ -14,7 +14,7 @@ export DOTS_MOUNT
 
 export dots="$DOTS_MOUNT/lib/dots/lib/dots.zsh"
 
-executable="$DOTS_MOUNT/lib/dots/bin/$@[1]"
+executable="$DOTS_MOUNT/libexec/dots/$@[1]"
 
 shift
 $executable.* "$@"

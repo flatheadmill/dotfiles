@@ -1,0 +1,5 @@
+- Hard to reconstruct from method chaining, message is formatted so that all
+  information is available at crash, no neee for a special formatter at catch.
+- Instance of types are painful, string matching is easy.
+- Works well with Rescue which creates regular expression switch statements, but
+  you could probably create a Rescue that works with `instanceof`.

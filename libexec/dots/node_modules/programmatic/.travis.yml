@@ -1,0 +1,17 @@
+language: node_js
+
+node_js:
+  - '0.10'
+
+branches:
+  only:
+    - master
+    - travis-ci
+
+before_install:
+  - npm install
+  - npm install istanbul coveralls
+
+env:
+  global:
+  - secure: "fLHjvk8QloVTBBeXrL2oXLHgcZdqiZREvO6lQUeYuD0wYsE56+tX+MrUx3DywpjR2wjJz2IFPnjqnyEwqHvbYnBr103haA6FUAWhA6f+5T1cAhCbt/PjSNJ/DLQDNyubD+UDrc3f8qdBS5u12WOLIdh2SowSWFENWITeLEZQow8="
