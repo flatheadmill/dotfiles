@@ -10,6 +10,10 @@ source $dots <<- usage
     Bump version number and publish a release.
 usage
 
+if [[ $(jq '.private' < package.json) = "true" ]]; then
+    abend "Repository is private."  
+fi
+
 zparseopts -a opts -D -- -help h -title: t: -prefix: p: -version: v: d -dry-run I -issueless
 
 index=1
