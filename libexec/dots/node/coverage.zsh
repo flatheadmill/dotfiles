@@ -13,5 +13,5 @@ jq -e '
 ' < coverage/coverage-summary._json > /dev/null
 
 if [ $? -ne 0 ]; then
-    node_modules/.bin/istanbul report --format text    
+    istanbul report --format text
 fi
