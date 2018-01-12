@@ -9,7 +9,7 @@ if [[ -d node_modules ]]; then
 fi
 
 rm -rf node_modules
-npm install
+npm install --no-package-lock --no-save
 if git ls-files node_modules --error-unmatch 2>/dev/null; then
     echo git checkout node_modules
     git checkout node_modules
