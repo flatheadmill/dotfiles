@@ -9,6 +9,8 @@ source $dots <<- usage
       Do not run the command for the given module. This option may be repeated
       multiple times to specify multiple modules.
 
+    -r, --root
+
   desctiption:
 
     Apply the given comnand to all project dependencies.
@@ -18,6 +20,7 @@ set -e
 
 visited=()
 o_skip=()
+o_root=()
 
 # I've always supported long form arguments but now I'm deciding not to for my
 # own little utilities for a while. See if I really miss them.
@@ -26,7 +29,7 @@ o_skip=()
 #
 # http://grml.org/zsh/zsh-lovers.html#_shell_scripting
 # https://linux.die.net/man/1/zshmodules (docs)
-zparseopts -D -a o_skip s+: -skip+:
+zparseopts -D -a o_skip s+: -skip+: r=o_root -root=o_root
 
 # `zparseopts` will add the argument to the array along with the value creating
 # an array with argument followed by value. We don't need the argument if we are
@@ -64,19 +67,32 @@ function status_get_packages () {
 report=()
 
 function status_inspect_project () {
-    local caller=$1 name=$(jq -r '.name' < "package.json")
+    local caller=$1 name=$(jq -r '.name' < "package.json") key=
     shift
+    if [[ "$o_root" != "" && "$name" = *.* ]]; then
+        key=${name%%.*} 
+    else
+        key=$name
+    fi
     # https://stackoverflow.com/questions/5203665/zsh-check-if-string-is-in-array
-    if (( ${visited[(I)$name]} )); then
+    if (( ${visited[(I)$key]} )); then
         return
     fi
-    echo "--- $name ---"
-    visited+=($name)
+    if [[ "$key" != "$name" ]]; then
+        pushd ".." > /dev/null
+        echo "--- $name -> $key ---"
+    else
+        echo "--- $name ---"
+    fi
+    visited+=($key)
     if (( $+skip[$name] )); then
         echo "skip $name"
-    elif ! "$@"; then
+    elif ! { "$@"; }; then
         echo "$caller"
         abend 'Test failed in `'$name'`.'
+    fi
+    if [[ "$key" != "$name" ]]; then
+        popd > /dev/null
     fi
     status_inspect_dependencies "$@"
 }
