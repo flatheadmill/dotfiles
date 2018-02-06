@@ -16,5 +16,9 @@ if git ls-files node_modules --error-unmatch 2>/dev/null; then
 fi
 
 for link in ${links[@]}; do
-    npm link ${link#node_modules/}
+    if [[ ! -e $link ]]; then
+        npm link ${link#node_modules/}
+    else
+        echo "already exists: $link"
+    fi
 done
