@@ -14,9 +14,9 @@ set -e
 
 o_expire=(-e 10)
 o_package=()
-o_sort=()
+o_skip=()
 
-zparseopts -K -D -a o_dist d+: -dist+: e:=o_expire p+:=o_package g=o_greatest
+zparseopts -K -D -a o_dist d+: -dist+: e:=o_expire -skip+:=o_skip s+:=o_skip p+:=o_package g=o_greatest
 
 if [[ ${#o_dist} -eq 0 ]]; then
     o_dist=(-d latest)
@@ -32,6 +32,9 @@ function status_get_packages () {
         [ . | to_entries[] | select(.key == $collection) | .value | to_entries[] | .key, .value ] | join(" ")
     ' < "$file"
 }
+
+typeset -A skip
+skip=(${(Oa)o_skip})
 
 typeset -A packages
 packages=($(status_get_packages package.json dependencies) $(status_get_packages package.json devDependencies))
@@ -53,6 +56,9 @@ SORT=$(which gsort || which sort)
 
 for dependency in ${(k)packages}; do
     if ! (( $+i_packages[$dependency] )); then
+        continue
+    fi
+    if (( $+skip[$dependency] )); then
         continue
     fi
     package=node_modules/$dependency/package.json
