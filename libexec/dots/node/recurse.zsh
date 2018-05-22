@@ -19,6 +19,7 @@ usage
 set -e
 
 visited=()
+executed=()
 o_skip=()
 o_root=()
 
@@ -75,24 +76,27 @@ function status_inspect_project () {
         key=$name
     fi
     # https://stackoverflow.com/questions/5203665/zsh-check-if-string-is-in-array
-    if (( ${visited[(I)$key]} )); then
+    if (( ${visited[(I)$name]} )); then
         return
     fi
-    if [[ "$key" != "$name" ]]; then
-        pushd ".." > /dev/null
-        echo "--- $name -> $key ---"
-    else
-        echo "--- $name ---"
-    fi
-    visited+=($key)
-    if (( $+skip[$name] )); then
-        echo "skip $name"
-    elif ! { "$@"; }; then
-        echo "$caller"
-        abend 'Test failed in `'$name'`.'
-    fi
-    if [[ "$key" != "$name" ]]; then
-        popd > /dev/null
+    visited+=($name)
+    if ! (( ${executed[(I)$key]} )); then
+        if [[ "$key" != "$name" ]]; then
+            pushd ".." > /dev/null
+            echo "--- $name -> $key ---"
+        else
+            echo "--- $name ---"
+        fi
+        executed+=($key)
+        if (( $+skip[$name] )); then
+            echo "skip $name"
+        elif ! { "$@"; }; then
+            echo "$caller"
+            abend 'Test failed in `'$name'`.'
+        fi
+        if [[ "$key" != "$name" ]]; then
+            popd > /dev/null
+        fi
     fi
     status_inspect_dependencies "$@"
 }
