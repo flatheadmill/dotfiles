@@ -68,7 +68,8 @@ function status_get_packages () {
 report=()
 
 function status_inspect_project () {
-    local caller=$1 name=$(jq -r '.name' < "package.json") key=
+    local caller=$1 name=$(basename $(pwd)) key=
+    # local caller=$1 name=$(jq -r '.name' < "package.json") key=
     shift
     if [[ "$o_root" != "" && "$name" = *.* ]]; then
         key=${name%%.*} 
