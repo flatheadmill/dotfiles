@@ -77,7 +77,7 @@ function! s:goyo_enter()
     silent !tmux set status off
     silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
     colo seoul256-light
-    Limelight
+"    Limelight
 endfunction
 
 function! s:goyo_leave()
