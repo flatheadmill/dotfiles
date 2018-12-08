@@ -58,6 +58,8 @@ call plug#begin('~/.vim/plugged')
 Plug 'junegunn/seoul256.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'junegunn/goyo.vim'
+Plug 'tpope/vim-markdown'
+Plug 'reedes/vim-pencil'
 
 call plug#end()
 
