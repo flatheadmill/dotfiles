@@ -127,8 +127,8 @@ function status_inspect_dependencies () {
         if [[ "$email" != 'true' ]]; then
             continue
         fi
-        if [[ "$package" = *.* ]]; then
-            parent=${package%.*}
+        if [[ "$package" = *.* ]] || [[ "$package" = *.*.* ]]; then
+            parent=${package%%.*}
             # http://www.refining-linux.org/archives/37/ZSH-Gem-2-Extended-globbing-and-expansion/
             #
             # Sought a way to use expansion in a conditional. Could as easily
