@@ -147,7 +147,19 @@ function status_inspect_dependencies () {
                 abend 'cannot find directory for `'$package'`.'
             fi
         else
-            dir=$(ls -d ${root}../../*/$package)
+            # dir=$(ls -d ${root}../../*/$package)
+            if [[ -n $(echo ${root}../../*/$package(NY1)) ]]; then
+                dir=$(ls -d ${root}../../*/$package)
+            elif [[ -n $(echo ${root}../../$package(NY1)) ]]; then
+                dir=$(ls -d ${root}../../$package)
+            else
+                pwd
+                abend 'cannot find directory for `'$package'`.'
+            fi
+            package_name=$(jq -r '.name' < "$dir/package.json")
+            if [[ "$package_name" != "$package" ]]; then
+                dir=$(ls -d $dir/$package_name)
+            fi
         fi
         [[ -e "$dir/package.json" ]] || abend "cannot find package in $dir"
         [[ $(jq -r '.name' < "$dir/package.json") = "$package" ]] || abend "$package not in $dir/package"
