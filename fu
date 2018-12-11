@@ -1,5 +1,5 @@
-echo echo 1
-docker-rmis docker images | grep "$1" | awk '{ print $1":"$2 }' | xargs docker rmi
+echo e=; echo "$e"
+docker-rmis g=; docker images | grep "$g" | awk '{ print $1":"$2 }' | xargs echo docker rmi
 docker-ago docker ps -a | grep "$1 ago" | awk '{print $1}' | xargs docker rm
 docker-kill docker ps -a | awk 'NR > 1 && $(NF) !~ /homeport/ { print $1 }' | xargs -n 1 docker kill
 docker-rm docker ps -a | awk 'NR > 1 && $(NF) !~ /homeport/ { print $1 }' | xargs -n 1 docker rm

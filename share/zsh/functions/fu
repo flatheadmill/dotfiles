@@ -1,0 +1,31 @@
+echo Initializing
+
+function fu () {
+case "$1" in
+    add)
+        shift 
+        name=$1 
+        shift
+        command=`head -n 1 | sed 's/ *[0-9][0-9]* *//'`
+        echo "$name $command" >> ~/.dotfiles/fu
+        ;;
+    list)
+        shift 
+        cat ~/.dotfiles/fu
+        ;;
+    *)
+        name=$1 
+        shift
+        while read -r line; do
+            label=${line%% *}
+            expression=${line#* }
+            if [ "$label" = "$name" ]; then
+                print -S $expression
+                break
+            fi
+        done < ~/.dotfiles/fu
+        ;;
+esac
+}
+
+fu "$@"

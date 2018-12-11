@@ -5,3 +5,6 @@ for file in "$DOTFILES/etc/zprofile.d/"*; do
 done
 
 unsetopt autopushd
+
+fpath=( ~/.dotfiles/share/zsh/functions "${fpath[@]}" )
+autoload -Uz fu
