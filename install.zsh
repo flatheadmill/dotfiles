@@ -69,6 +69,9 @@ create_rc .tmux.conf tmux.conf
 create_rc .gitconfig gitconfig
 create_rc .vimrc vimrc
 
+# Tired of wrestling with Unicode.
+cd ~/.oh-my-zsh && patch -p 1 < ~/.dotfiles/share/terminalparty.patch
+
 if [ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]; then
 cat <<EOF
 Existing configuration files where replaced. The replaced files have been

@@ -1,0 +1,9 @@
+diff -Naur .oh-my-zsh/themes/terminalparty.zsh-theme oh-my-zsh/themes/terminalparty.zsh-theme
+--- .oh-my-zsh/themes/terminalparty.zsh-theme	2018-12-30 18:01:45.000000000 -0600
++++ oh-my-zsh/themes/terminalparty.zsh-theme	2018-12-30 17:57:38.000000000 -0600
+@@ -5,4 +5,4 @@
+ ZSH_THEME_GIT_PROMPT_PREFIX=" %{$fg[yellow]%}("
+ ZSH_THEME_GIT_PROMPT_SUFFIX=")%{$reset_color%}"
+ ZSH_THEME_GIT_PROMPT_CLEAN=""
+-ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[red]%} ⚡%{$fg[yellow]%}"
++ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[red]%} +%{$fg[yellow]%}"
