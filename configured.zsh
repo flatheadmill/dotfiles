@@ -1,3 +1,5 @@
+set -e
+
 if [ -e ~/.dotfiles/install.zsh ]; then
     zsh ~/.dotfiles/install.zsh
 else
