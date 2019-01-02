@@ -28,7 +28,11 @@ if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "
 fi
 
 if [ $(basename $SHELL) != "zsh" ]; then
-  abend "change your shell to zsh before running install"
+  if [[ "$OSTYPE" = "linux-gnu" ]]; then
+    abend "you need to: sudo usermod --shell $(which zsh) $USER"
+  else
+    abend "change your shell to zsh before running install"
+  fi
 fi
 
 if ! [ -e "$HOME/.oh-my-zsh" ]; then
