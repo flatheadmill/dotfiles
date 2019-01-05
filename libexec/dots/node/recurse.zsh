@@ -47,7 +47,7 @@ zparseopts -D -a o_skip s+: -skip+: r=o_root -root=o_root
 # array created by `zparseopts`. Reversing the array means that the keys are
 # going to be the argument values and the values are going to be the argument
 # switches. Now we can use the associative array to test for skipping. Note that
-# you could aslo create an array of values using the `(k)` expansion.
+# you could also create an array of values using the `(k)` expansion.
 typeset -A skip
 skip=(${(Oa)o_skip})
 
@@ -89,7 +89,8 @@ function status_inspect_project () {
             echo "--- $name ---"
         fi
         executed+=($key)
-        if (( $+skip[$name] )); then
+        if (( $+skip[$name] )) || (( $+skip[.top] )); then
+            unset 'skip[.top]'
             echo "skip $name"
         elif ! { "$@"; }; then
             echo "$caller"
