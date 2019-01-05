@@ -151,3 +151,6 @@ for tag in "${untag[@]}"; do
         .["dist-tags"] | [to_entries[] | select(.key == $tag)] | length == 1
     ' > /dev/null && npm dist-tag rm "$name" "$tag" || echo "no existing $tag tag"
 done
+
+echo rm -rf ~/.usr/var/cache/dots/node/outdated/dist-tags/$name
+rm -rf ~/.usr/var/cache/dots/node/outdated/dist-tags/$name
