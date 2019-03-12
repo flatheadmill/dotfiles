@@ -18,6 +18,10 @@ if ! which node > /dev/null 2>&1; then
     abend "node is missing."
 fi
 
+if [[ ! -e ~/.dots ]]; then
+    abend "~/.dots is missing."
+fi
+
 if [[ $(jq '.private' < package.json) = "true" ]]; then
     abend "Repository is private."  
 fi
