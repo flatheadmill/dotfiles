@@ -10,6 +10,14 @@ source $dots <<- usage
     Bump version number and publish a release.
 usage
 
+if ! which jq > /dev/null 2>&1; then
+    abend "jq is missing."
+fi
+
+if ! which node > /dev/null 2>&1; then
+    abend "node is missing."
+fi
+
 if [[ $(jq '.private' < package.json) = "true" ]]; then
     abend "Repository is private."  
 fi
