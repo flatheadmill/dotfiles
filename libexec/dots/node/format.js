@@ -33,7 +33,7 @@ for (var key in json) {
 var fields = ([
         'private', 'name', 'version', 'description', 'keywords', 'author',
         'contributors', 'homepage', 'bugs', 'license', 'repository',
-        'dependencies', 'devDependencies', 'main', 'bin', 'scripts'
+        'dependencies', 'devDependencies', 'main', 'bin', 'scripts', 'nyc'
     ])
     .filter(function (key) {
         return json[key]
@@ -103,6 +103,17 @@ var fields = ([
             }
         } else {
             var properties = Object.keys(json[key])
+            if (key == 'nyc') {
+            return $('\n\
+                ' + JSON.stringify(key) + ':                                        \n\
+                {                                                                   \n\
+                    ', "//                  [ " + json[key].exclude.map(function (pattern) {
+                        return JSON.stringify(pattern)
+                    }).join(', '), ' ] \n\
+                    // __reference__ \n\
+                },                                                                  \n\
+            ')
+            }
             if (key == 'dependencies' || key == 'devDependencies' || key == 'bin') {
                 properties.sort()
             }
