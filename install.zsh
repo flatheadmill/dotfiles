@@ -31,7 +31,7 @@ if [ $(basename $SHELL) != "zsh" ]; then
   if [[ "$OSTYPE" = "linux-gnu" ]]; then
     abend "you need to: sudo usermod --shell $(which zsh) $USER"
   else
-    abend "change your shell to zsh before running install"
+    abend "you need to: sudo chsh -s $(which zsh) $USER"
   fi
 fi
 
