@@ -19,7 +19,7 @@ au BufEnter *.xml,*.xslt,*.xsl set comments=s4:<!--,mb:=-,mb:\|,ex:-->
 au BufLeave *.xml,*.xslt,*.xsl set comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
 au BufRead,BufNewFile *.coffee set comments=:#
 au BufRead,BufNewFile *.js set sw=4 ts=4
-au BufRead,BufNewFile *.rb,*yml,*.cr set sw=2 ts=2
+au BufRead,BufNewFile *.tf,*.rb,*yml,*.cr set sw=2 ts=2
 au BufRead,BufNewFile *._coffee,*.coffee set comments=:# ft=coffee
 au BufRead,BufNewFile *._js set comments=:# ft=javascript
 au BufEnter rules set noet
