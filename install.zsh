@@ -28,10 +28,14 @@ if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "
 fi
 
 if [ $(basename $SHELL) != "zsh" ]; then
-  if [[ "$OSTYPE" = "linux-gnu" ]]; then
-    abend "you need to: sudo usermod --shell $(which zsh) $USER"
+  if [[ "$1" = "sudo" ]]; then
+    sudo chsh -s $(which zsh) $USER
   else
-    abend "you need to: sudo chsh -s $(which zsh) $USER"
+    if [[ "$OSTYPE" = "linux-gnu" ]]; then
+      abend "you need to: sudo usermod --shell $(which zsh) $USER"
+    else
+      abend "you need to: sudo chsh -s $(which zsh) $USER"
+    fi
   fi
 fi
 
