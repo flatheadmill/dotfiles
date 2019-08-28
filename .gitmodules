@@ -1,0 +1,3 @@
+[submodule "got/samoshkin/tmux"]
+	path = got/samoshkin/tmux
+	url = git@github.com:samoshkin/tmux-config.git
