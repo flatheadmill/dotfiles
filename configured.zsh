@@ -1,9 +1,9 @@
 set -e
 
 if [ -e ~/.dotfiles/install.zsh ]; then
-    zsh ~/.dotfiles/install.zsh
+    zsh ~/.dotfiles/install.zsh "$@"
 else
-    curl https://raw.githubusercontent.com/bigeasy/dotfiles/master/install.zsh | zsh
+    curl https://raw.githubusercontent.com/bigeasy/dotfiles/master/install.zsh | zsh -s "$@"
 fi
 
 git config --file ~/.dotfiles/rc/gitconfig --add user.name 'Alan Gutierrez'
