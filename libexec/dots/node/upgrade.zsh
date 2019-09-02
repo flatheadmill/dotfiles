@@ -1,5 +1,10 @@
 #!/usr/bin/env zsh
 
+set -e
+
+zmodload zsh/pcre
+setopt REMATCH_PCRE
+
 source $dots <<- usage
   usage: dots node install
 
@@ -8,31 +13,18 @@ source $dots <<- usage
     Bump version number and publish a release.
 usage
 
-zparseopts -a opts -D -- -help h -title: t: -version: v: d -dry-run
-
-index=1
-while [ $index -le $#opts ]; do
-    case "${opts[$index]}" in
-        -h|--help)
-            echo help
-            ;;
-        -d|--dry-run)
-            dry_run=1
-            ;;
-        -t|--title)
-            let index+=1
-            title=$opts[$index]
-            ;;
-        -v|--version)
-            let index+=1
-            bump=$opts[$index]
-            ;;
-    esac
-    let index+=1
-done
+zparseopts -K -D \
+    -help=o_help h=o_help \
+    -title:=o_title t:=o_title \
+    -version:=o_version v:=o_version \
+    -canary=o_canary c=o_canary \
+    -dry-run=o_dry_run d=o_dry_run
 
 package=$1
+shift
 
+[[ $# -ne 0 ]] && \
+    abend "single package name argument expected after options"
 
 if [ -z "$title" ]; then
     title='' separator=''
@@ -47,17 +39,36 @@ fi
 current=$(jq -r --arg key $package \
     '[(.devDependencies | to_entries[]), (.dependencies | to_entries[])][] | select(.key == $key) | .value' < package.json)
 
-if [ -z "$version" ]; then
-    version=$(dots node latest < <(npm info $package --json))
-    if [[ "$current" = *.x ]]; then
-        version=${version%.*}.x
-    fi
+cache=~/.usr/var/cache/dots/node/outdated/dist-tags
+info="$cache/$package/package.json "
+mkdir -p "${info%/*}"
+if [[ ! -e "$info" ]]; then
+    mv =(npm view "$package" --json) "$info"
 fi
 
-echo "$title $current -> $version"
-[ "$dry_run" -eq 1 ] && exit
+typeset -A releases
+releases=($(jq -r '[ .["dist-tags"] | to_entries[] | .key, .value ] | join(" ")' < "$info"))
+print ${releases[@]}
 
-sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$version'"/' package.json  > package.tmp.json
+if [ -n "$o_version" ]; then
+    release=$o_version
+elif [[ -z $o_canary ]]; then
+    release=${releases[latest]} 
+else
+    s_releases=($(semver ${(v)releases} | tail -r))
+    release=${s_releases[1]}
+fi
+
+if [[ $current =~ '(>=?)(.*)' ]]; then
+    release="${match[1]}${release%.*}.0"
+elif [[ $current = '*.x' ]]; then
+    release=${release%.*}.x
+fi
+
+echo "$title $current -> $release"
+[[ -n $dry_run ]] && exit
+
+sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$release'"/' package.json  > package.tmp.json
 mv package.tmp.json package.json
 
-git commit -a -m 'Upgrade `'$package'` to '$version'.'
+git commit -a -m 'Upgrade `'$package'` to '$release'.'
