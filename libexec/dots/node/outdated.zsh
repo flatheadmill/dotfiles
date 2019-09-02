@@ -15,13 +15,36 @@ set -e
 o_expire=(-e 10)
 o_package=()
 o_skip=()
-o_repository=()
+o_user=()
+o_package=()
 
-zparseopts -K -D c=o_canary e:=o_expire -skip+:=o_skip s+:=o_skip
+zparseopts -K -D \
+    -canary=o_canary c=o_canary \
+    -expire=o_expire e:=o_expire \
+    -skip+:=o_skip s+:=o_skip \
+    -package+:=o_package p+:=o_package \
+    -user+:=o_user u+:=o_user
 
-if [[ ${#o_dist} -eq 0 ]]; then
-    o_dist=(-d latest)
-fi
+# https://unix.stackexchange.com/a/29748
+function distributions () {
+    local ref=$1; shift; local o=("$@")
+    typeset -A k
+    k=(${(@Oa)o})
+    typeset -A aa
+    for value in ${(k)k}; do
+        if [[ $value = *=* ]]; then
+            pair=("${(@s/=/)value}")
+            aa[$pair[1]]=$pair[2]
+        else
+            aa[$value]=%
+        fi
+    done
+    : ${(PA)ref::=${(kv)aa}}
+}
+
+typeset -A user package
+distributions user ${(@)o_user}
+distributions package ${(@)o_package}
 
 # `Oa` sorts an array in reverse index order. We reverse the order of `o_skip`
 # so that it is argument value followed by argument name. We create an
@@ -41,7 +64,6 @@ function status_get_packages () {
 typeset -A packages
 packages=($(status_get_packages package.json dependencies) $(status_get_packages package.json devDependencies))
 
-
 cache=~/.usr/var/cache/dots/node/outdated/dist-tags
 
 mkdir -p "$cache"
@@ -54,24 +76,35 @@ for dependency in ${(k)packages}; do
     if (( $+skip[$dependency] )); then
         continue
     fi
-    package=node_modules/$dependency/package.json
-    if [[ ! -e "$package" ]]; then
-        print -u2 "error: $package not installed" && exit 1
+    json=node_modules/$dependency/package.json
+    if [[ ! -e "$json" ]]; then
+        print -u2 "error: $json not installed" && exit 1
     fi
-    version=$(jq -r '.version' <  "$package")
-    info="$cache"/"$dependency"/package.json 
+    version=$(jq -r '.version' <  "$json")
+    info="$cache"/"$dependency"/json.json
     mkdir -p "${info%/*}"
     if [[ ! -e "$info" ]]; then
         mv =(npm view "$dependency" --json) "$info"
     fi
     typeset -A releases
     releases=($(jq -r '[ .["dist-tags"] | to_entries[] | .key, .value ] | join(" ")' < "$info"))
-    if [[ -z $o_canary ]]; then
-        release=${releases[latest]}
+    u=$(jq -r '._npmUser | split(" ")[0]' < "$info")
+    if [[ $package[$u] = '%' || $user[$u] = '%' ]]; then
+        dists=("${(@k)releases}")
+    elif [[ -n $package[$dependency] ]]; then
+        dists=("${(@s/,/)package[$dependency]}")
+    elif [[ -n $user[$u] ]]; then
+        dists=("${(@s/,/)user[$u]}")
     else
-        s_releases=($(semver ${(v)releases} | tail -r))
-        release=${s_releases[1]}
+        dists=(latest)
     fi
+    candidates=()
+    for dist in ${dists[@]}; do
+        [[ -n ${releases[$dist]} ]] && candidates+=(${releases[$dist]})
+    done
+    # synonym for ${candidates[@]}
+    s_releases=($(semver ${(@)candidates} | tail -r))
+    release=${s_releases[1]}
     if [[ $version != $release ]]; then
         typeset -A tags
         values=(${(v)releases})
