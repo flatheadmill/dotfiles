@@ -2,6 +2,9 @@
 
 set -e
 
+zmodload zsh/pcre
+setopt REMATCH_PCRE
+
 source $dots <<- usage
   usage: dots node install
 
@@ -26,7 +29,7 @@ if [[ $(jq '.private' < package.json) = "true" ]]; then
     abend "Repository is private."  
 fi
 
-zparseopts -a opts -D -- -help h -title: t: -prefix: p: -version: v: d -dry-run I -issueless
+zparseopts -a opts -D -- -help h -final f -identifier: i: -title: t: -prefix: p: -bump: b: -version: v: d -dry-run I -issueless
 
 index=1
 while [ $index -le $#opts ]; do
@@ -34,8 +37,19 @@ while [ $index -le $#opts ]; do
         -h|--help)
             echo help
             ;;
+        -b|--bump)
+            let index+=1
+            bump=$opts[$index]
+            ;;
+        -f|--final)
+            final=1
+            ;;
         -I|--issueless)
             issueless=1
+            ;;
+        -i|--identify)
+            let index+=1
+            identify=$opts[index]
             ;;
         -d|--dry-run)
             dry_run=1
@@ -56,69 +70,71 @@ while [ $index -le $#opts ]; do
     let index+=1
 done
 
-[ -z "$1" ] && 1=micro
-is_latest=""
-tag=canary
-version=$(dots node package version)
-if [ -z "$bump" ]; then
-    case "$1" in
-        major)
-            major=${version%%.*}
-            bump="$(( $major + 1 )).0.0"
-            ;;
-        minor)
-            major=${version%%.*}
-            minor=${version#*.}
-            minor=${minor%%.*}
-            bump=$major.$(( $minor + 1 )).0
-            ;;
-        micro)
-            major_minor_pre=${version%.*}
-            micro=${version##*.}
-            bump=$major_minor_pre.$(( $micro + 1 ))
-            ;;
-        alpha)
-            major_minor=${version%.*.*}
-            bump=$major_minor.0-alpha.0
-            ;;
-        beta)
-            major_minor=${version%.*.*}
-            bump=$major_minor.0-beta.0
-            ;;
-        rc)
-            major_minor=${version%.*.*}
-            bump=$major_minor.0-rc.0
-            ;;
-        final)
-            major_minor=${version%.*.*}
-            bump=$major_minor.0
-            ;;
-    esac
-    case "$2" in
-        alpha|beta|rc)
-            bump="${bump}-${2}.0"
-            ;;
-    esac
+if [[ -n $identify ]]; then
+    identifiers=(alpha beta rc)
+    [[ -z ${identifiers[(r)$identify]} ]] && \
+        abend "$identify is not a valid identifier -> use alpha, beta or rc"
+fi
+[[ -n "$version" ]] && [[ -n "$bump" ]] && abend "either version or bump"
+[[ -n "$identify" ]] && [[ -z "$bump" ]] && \
+    abend "bump is required when setting identifier"
+[[ -n "$identify" ]] && [[ "$bump" != major && "$bump" != minor ]] && \
+    abend "$identify option only works with bump of major or minor"
+git diff-index --quiet HEAD -- || abend "work tree must be clean"
+
+current=$(dots node package version)
+
+[[ "$current" =~ '^(\d+)\.(\d+)\.(\d+)(?:$|-(alpha|beta|rc)\.(\d+)$)' ]] || \
+    abend "bad version number $version"
+
+local major=$match[1] minor=$match[2] micro=$match[3] identifier=$match[4] pre=$match[5]
+
+if [[ -n "$identify" ]]; then
+    pre=0
+    identifier=$identify
 fi
 
-untag=()
-if [[ "$bump" != *-* ]]; then
-    major=${bump%%.*}
-    if [ "$major" -eq 0 ]; then
-        tag=latest
-        untag+=('dev' 'canary')
-    elif [ $(( $major % 2 )) -eq 1 ]; then
-        minor=${bump#*.}
-        minor=${minor%%.*}
-        if [[ $(( $minor % 2 )) -eq 0 ]]; then
-            tag=latest
-            untag+=('dev' 'canary')
+local untag=
+if [[ -z "$version" ]];  then
+    if [[ $final -eq 1 ]]; then
+        bump=none
+    elif [[ -z "$bump" ]]; then
+        if [[ -z "$identifier" ]]; then
+            bump=micro
         else
-            untag+=('canary')
-            tag=dev
+            bump=pre
         fi
     fi
+    case "$bump" in
+        major)
+            let major+=1
+            minor=0
+            micro=0
+            ;;
+        minor)
+            let minor+=1
+            micro=0
+            ;;
+        micro)
+            let micro+=1
+            ;;
+        pre)
+            let pre+=1
+            ;;
+        none)
+            ;;
+    esac
+    version="$major.$minor.$micro"
+    if [[ -n "$identifier" ]]; then
+        version+="-$identifier.$pre"
+        tag=canary
+    else
+        tag=latest
+        untag=canary
+    fi
 fi
+
+echo "$version"
 
 if [ -z "$prefix" ]; then
     name=$(dots node package name)
@@ -138,31 +154,28 @@ if [ -z "$title" ]; then
     done
 fi
 
-if ! git diff-index --quiet HEAD --; then
-    echo "Work tree must be clean." 1>&2
-    exit 1
-fi
-echo "$title $prefix$version -> $prefix$bump ($tag)"
-[ "$dry_run" -eq 1 ] && exit
-sed 's/\("version":.*"\)'$version'/\1'$bump'/' package.json > package.json.tmp
+echo "$title $prefix$current -> $prefix$version ($tag)"
+echo $untag $tag
+[[ "$dry_run" -eq 1 ]] && exit
+sed 's/\("version":.*"\)'$current'/\1'$version'/' package.json > package.json.tmp
 mv package.json.tmp package.json
 git add .
 git commit --dry-run
 if [ "$issueless" -eq 1 ]; then
-    git commit -m "Release $title $bump."
+    git commit -m "Release $title $version."
 else
-    issue=$(dots git issue create -m able -l enhancement "Release $title version $bump.")
-    git commit -m "Release $title $bump."$'\n\nCloses #'$issue'.'
+    issue=$(dots git issue create -m able -l enhancement "Release $title version $version.")
+    git commit -m "Release $title $version."$'\n\nCloses #'$issue'.'
 fi
 git push origin HEAD
-git tag "$prefix$bump"
+git tag "$prefix$version"
 git push origin --tags
 npm publish --tag "$tag"
-for tag in "${untag[@]}"; do
-    npm info "$name" --json | jq -e --arg tag $tag -r '
+if [[ -n $untag ]]; then
+    npm info "$name" --json | jq -e --arg tag $untag -r '
         .["dist-tags"] | [to_entries[] | select(.key == $tag)] | length == 1
-    ' > /dev/null && npm dist-tag rm "$name" "$tag" || echo "no existing $tag tag"
-done
+    ' > /dev/null && npm dist-tag rm "$name" "$untag" || echo "no existing $untag tag"
+fi
 
 echo rm -rf ~/.usr/var/cache/dots/node/outdated/dist-tags/$name
 rm -rf ~/.usr/var/cache/dots/node/outdated/dist-tags/$name
