@@ -134,8 +134,6 @@ if [[ -z "$version" ]];  then
     fi
 fi
 
-echo "$version"
-
 if [ -z "$prefix" ]; then
     name=$(dots node package name)
     prefix='v'
@@ -155,8 +153,9 @@ if [ -z "$title" ]; then
 fi
 
 echo "$title $prefix$current -> $prefix$version ($tag)"
-echo $untag $tag
+
 [[ "$dry_run" -eq 1 ]] && exit
+
 sed 's/\("version":.*"\)'$current'/\1'$version'/' package.json > package.json.tmp
 mv package.json.tmp package.json
 git add .
