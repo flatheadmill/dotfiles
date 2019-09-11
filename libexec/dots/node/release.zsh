@@ -64,7 +64,7 @@ while [ $index -le $#opts ]; do
             ;;
         -v|--version)
             let index+=1
-            bump=$opts[$index]
+            version=$opts[$index]
             ;;
     esac
     let index+=1
@@ -125,13 +125,16 @@ if [[ -z "$version" ]];  then
             ;;
     esac
     version="$major.$minor.$micro"
-    if [[ -n "$identifier" ]]; then
-        version+="-$identifier.$pre"
-        tag=canary
-    else
-        tag=latest
-        untag=canary
-    fi
+fi
+
+if [[ -n "$identifier" ]]; then
+    version+="-$identifier.$pre"
+    tag=canary
+elif [[ "$version" = 0.* ]]; then
+    tag=canary
+else
+    tag=latest
+    untag=canary
 fi
 
 if [ -z "$prefix" ]; then
