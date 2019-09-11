@@ -167,7 +167,6 @@ sed 's/\("version":.*"\)'$current'/\1'$version'/' package.json > package.json.tm
 mv package.json.tmp package.json
 git add .
 git commit --dry-run
-exit
 if [[ -n $o_notes ]]; then
     issue=$(dots git issue create -m able -l enhancement "Release $title version $version.")
     git commit -m "Release $title $version."$'\n\n'$o_notes$'\n\nCloses #'$issue'.'
