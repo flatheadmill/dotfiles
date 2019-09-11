@@ -29,7 +29,7 @@ if [[ $(jq '.private' < package.json) = "true" ]]; then
     abend "Repository is private."  
 fi
 
-zparseopts -a opts -D -- -help h -final f -identifier: i: -title: t: -prefix: p: -bump: b: -version: v: d -dry-run I -issueless
+zparseopts -a opts -D -- n: -notes: -help h -final f -identifier: i: -title: t: -prefix: p: -bump: b: -version: v: d -dry-run I -issueless
 
 index=1
 while [ $index -le $#opts ]; do
@@ -40,6 +40,10 @@ while [ $index -le $#opts ]; do
         -b|--bump)
             let index+=1
             bump=$opts[$index]
+            ;;
+        -n|--notes)
+            let index+=1
+            o_notes=$opts[$index]
             ;;
         -f|--final)
             final=1
@@ -163,7 +167,11 @@ sed 's/\("version":.*"\)'$current'/\1'$version'/' package.json > package.json.tm
 mv package.json.tmp package.json
 git add .
 git commit --dry-run
-if [ "$issueless" -eq 1 ]; then
+exit
+if [[ -n $o_notes ]]; then
+    issue=$(dots git issue create -m able -l enhancement "Release $title version $version.")
+    git commit -m "Release $title $version."$'\n\n'$o_notes$'\n\nCloses #'$issue'.'
+elif [ "$issueless" -eq 1 ]; then
     git commit -m "Release $title $version."
 else
     issue=$(dots git issue create -m able -l enhancement "Release $title version $version.")
