@@ -13,7 +13,7 @@ separator=$(LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head
 
 dir=$(pwd)
 ( \
-    { cd "$tmp" && git -C "$dir" log --format=%B$separator | \
+    { cd "$tmp" && git -C "$dir" log --format=%B$separator . | \
     csplit -s -k -n 5 - "/$separator/" '{99999}'; } 2> /dev/null || true; \
 )
 
