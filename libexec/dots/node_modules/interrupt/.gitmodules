@@ -1,4 +1,0 @@
-[submodule "docs"]
-	path = docs
-	url = https://github.com/bigeasy/interrupt.git
-    branch = gh-pages
