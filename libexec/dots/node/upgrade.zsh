@@ -44,6 +44,8 @@ zparseopts -K -D \
     -canary=o_canary c=o_canary \
     -dry-run=o_dry_run d=o_dry_run
 
+[[ -n $o_help ]] && usage
+
 package=$1
 shift
 
