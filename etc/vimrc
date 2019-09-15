@@ -59,7 +59,10 @@ Plug 'junegunn/seoul256.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'junegunn/goyo.vim'
 Plug 'tpope/vim-markdown'
+Plug 'sainnhe/vim-color-lost-shrine'
 Plug 'reedes/vim-pencil'
+Plug 'prurigro/vim-markdown-concealed'
+Plug 'endel/vim-github-colorscheme'
 
 call plug#end()
 
