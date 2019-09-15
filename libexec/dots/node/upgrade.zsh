@@ -92,7 +92,7 @@ elif [[ $current = '*.x' ]]; then
 fi
 
 echo "$title $current -> $release"
-[[ -n $dry_run ]] && exit
+[[ -n $o_dry_run ]] && exit
 
 sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$release'"/' package.json  > package.tmp.json
 mv package.tmp.json package.json
