@@ -33,7 +33,7 @@ source $dots <<- usage
     Update a Node.js dependency to the latest version.
 
     Preserves caret-pinning. If the dependency is caret-pinned in the
-    `package.json` then it will be caret-pinned to the latest version. If not
+    \`package.json\` then it will be caret-pinned to the latest version. If not
     then it will be pinned to the current version specificly.
 usage
 
