@@ -82,7 +82,8 @@ else
     release=${s_releases[1]}
 fi
 
-if [[ $current =~ '^^' ]]; then
+if [[ $current =~ '^\^' ]]; then
+    echo "MATCHED"
     release="^${release}"
 elif [[ $current =~ '^>=?' ]]; then
     release="^${release}"
