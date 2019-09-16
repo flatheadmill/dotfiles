@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -i, --inherit   <number>
+            file handles to inherit
+
+        -s, --scram     <number>
+            number of seconds to wait for children to exit
+
+        -p, --processor <path>
+            path to processor
+
+        --help
+            display this message
+
+    ___ $ ___ en_US ___
+
+        log is required:
+            the `--log` address and port is a required argument
+
+        port is not an integer:
+            the `--log` port must be an integer
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const issue = await dots.read(path.resolve(dots.tmp, 'issue.txt'))
+    if (issue == null) {
+        const message = (await dots.zsh('git log -n 1 --format=%B . 1>&3')).output.trim()
+        await fs.mkdir(dots.tmp, { recursive: true })
+        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), `title: ${message}`, 'utf8')
+    }
+    let dirty = true
+    while (dirty) {
+        dirty = false
+        const lines = (await dots.read(path.resolve(dots.tmp, 'issue.txt'))).split('\n') 
+        for (let i = 0, I = lines.length; i < I; i++) {
+            if (!/\S/.test(lines[i])) {
+                break
+            }
+            const $ = /^([^:]+):\s+(.*)$/.exec(lines[i])
+            const name = $[1], value = $[2]
+            switch (name) {
+            case 'milestone': {
+                    const title = (await dots.milestone(value)).title
+                    if (title != value) {
+                        lines[i] = `milestone: ${title}`
+                    }
+                }
+                break
+            case 'project': {
+                    const name = (await dots.project(value)).name
+                    if (name != value) {
+                        lines[i] = `project: ${name}`
+                    }
+                }
+                break
+            }
+        }
+        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
+    }
+    return 0
+})
