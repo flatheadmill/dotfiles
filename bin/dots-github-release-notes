@@ -24,7 +24,7 @@ require('arguable')(module, async arguable => {
     const fs = require('fs').promises
     const path = require('path')
     const tags = /\((.*)\)/.exec((await dots.zsh(`
-        git log -n 1 --tags --no-walk --date=iso-local --pretty="%d" . 1>&3
+        git log -n 1 --pretty="%d" . 1>&3
     `)).output.trim())[1]
        .split(/,\s+/)
        .filter(tag => /^tag:\s/.test(tag))
