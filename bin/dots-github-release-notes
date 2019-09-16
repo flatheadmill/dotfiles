@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -t, --tag <string>
+            The release note tag to update.
+
+    ___ $ ___ en_US ___
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const tags = /\((.*)\)/.exec((await dots.zsh(`
+        git log -n 1 --tags --no-walk --date=iso-local --pretty="%d" . 1>&3
+    `)).output.trim())[1]
+       .split(/,\s+/)
+       .filter(tag => /^tag:\s/.test(tag))
+       .map(tag => /^tag:\s(.*)$/.exec(tag)[1])
+       .filter(tag => tag.startsWith(`${dots.prefix}v`))
+    arguable.assert(tags.length != 0, 'no tag found')       
+    arguable.assert(tags.length == 1, 'multiple tags found')       
+    const tag = tags.shift()
+    const message = (await dots.zsh(`
+        git log -n 1 --pretty="%B" . 1>&3
+    `)).output.trim()
+    const lines = message.split('\n')
+    do {
+        lines.shift()
+    } while (!/\S/.test(lines[0]))
+    console.log({
+        ...dots.ownerRepo,
+        tag_name: tag,
+        name: `${dots.title} v${dots.json.version}`,
+        body: lines.join('\n'),
+        prerelease: true
+    })
+    await dots.octokit.repos.createRelease({
+        ...dots.ownerRepo,
+        tag_name: tag,
+        name: `${dots.title} v${dots.json.version}`,
+        body: lines.join('\n'),
+        prerelease: true
+    })
+})
