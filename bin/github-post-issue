@@ -1,0 +1,96 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -i, --inherit   <number>
+            file handles to inherit
+
+        -s, --scram     <number>
+            number of seconds to wait for children to exit
+
+        -p, --processor <path>
+            path to processor
+
+        --help
+            display this message
+
+    ___ $ ___ en_US ___
+
+        log is required:
+            the `--log` address and port is a required argument
+
+        port is not an integer:
+            the `--log` port must be an integer
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const issue = await dots.read(path.resolve(dots.tmp, 'issue.txt'))
+    arguable.assert(issue != null, 'issue missing')
+    const lines = (await dots.read(path.resolve(dots.tmp, 'issue.txt'))).split('\n') 
+    const posts = [{
+        object: 'issues',
+        fixup: () => {},
+        method: 'create',
+        body: { owner: dots.owner, repo: dots.repo, labels: [], assignees: [ dots.owner ] }
+    }]
+    for (let i = 0, I = lines.length; i < I; i++) {
+        if (!/\S/.test(lines[i])) {
+            const body = (i + 1 < lines.length ? lines.slice(i + 1).join('\n') : '').trim()
+            if (body != '') {
+                posts[0].body.body = body
+            }
+            break
+        }
+        const $ = /^([^:]+):\s+(.*)$/.exec(lines[i])
+        const name = $[1], value = $[2]
+        switch (name) {
+        case 'title': {
+                posts[0].body.title = value
+            }
+            break
+        case 'milestone': {
+                posts[0].body.milestone = (await dots.milestone(value)).number
+            }
+            break
+        case 'project': {
+                const { column } = await dots.column(value, 'backlog')
+                posts.push({
+                    object: 'projects',
+                    method: 'createCard',
+                    fixup: (posts, post) => post.content_id = posts[0].data.id,
+                    body: {
+                        column_id: column.id,
+                        content_type: 'Issue',
+                    }
+                })
+            }
+            break
+        case 'label': {
+                posts[0].body.labels.push((await dots.labels(value)).name)
+            }
+            break
+        }
+    }
+    for (const post of posts) {
+        console.log(require('util').inspect(post, { depth: null }))
+        post.fixup(posts, post)
+        const { data } = await dots.octokit[post.object][post.method](post.body)
+        post.data = data
+        console.log(post.data)
+    }
+    return 0
+})

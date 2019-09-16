@@ -69,6 +69,13 @@ require('arguable')(module, async arguable => {
                     }
                 }
                 break
+            case 'label': {
+                    const name = (await dots.labels(value)).name
+                    if (name != value) {
+                        lines[i] = `label: ${name}`
+                    }
+                }
+                break
             }
         }
         await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
