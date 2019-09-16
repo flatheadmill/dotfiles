@@ -71,7 +71,7 @@ require('arguable')(module, async arguable => {
                 posts.push({
                     object: 'projects',
                     method: 'createCard',
-                    fixup: (posts, post) => post.content_id = posts[0].data.id,
+                    fixup: (posts, post) => post.body.content_id = posts[0].data.id,
                     body: {
                         column_id: column.id,
                         content_type: 'Issue',
@@ -86,11 +86,12 @@ require('arguable')(module, async arguable => {
         }
     }
     for (const post of posts) {
-        console.log(require('util').inspect(post, { depth: null }))
         post.fixup(posts, post)
+        console.log(require('util').inspect(post, { depth: null }))
         const { data } = await dots.octokit[post.object][post.method](post.body)
         post.data = data
         console.log(post.data)
     }
+    await fs.unlink(path.resolve(dots.tmp, 'issue.txt'))
     return 0
 })
