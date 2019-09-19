@@ -9,11 +9,14 @@
         -i, --inherit   <number>
             file handles to inherit
 
-        -s, --scram     <number>
-            number of seconds to wait for children to exit
+        -m, --milestone <number>
+            Milestone.
 
-        -p, --processor <path>
-            path to processor
+        -p, --project <path>
+            Project name.
+
+        -l, --label <string>
+            One or more labels to apply to issue.
 
         --help
             display this message
@@ -40,9 +43,34 @@ require('arguable')(module, async arguable => {
     const path = require('path')
     const issue = await dots.read(path.resolve(dots.tmp, 'issue.txt'))
     if (issue == null) {
-        const message = (await dots.zsh('git log -n 1 --format=%B . 1>&3')).output.trim()
+        const message = (await dots.zsh(`
+            git log -n 1 --format=%B . 1>&3
+        `)).output.trim().split('\n')
+        const title = []
+        const body = []
+        let mode = 'title'
+        for (const line of message) {
+            if (mode == 'body') {
+                body.push(line)
+            } else if (!/\S/.test(line)) {
+                mode == 'body'
+            } else {
+                title.push(line)
+            }
+        }
+        const lines = [ `title: ${title.join('\n')}` ]
+        if (arguable.ultimate.milestone) {
+            lines.push(`milestone: ${arguable.ultimate.milestone}`)
+        }
+        if (arguable.ultimate.project) {
+            lines.push(`project: ${arguable.ultimate.project}`)
+        }
+        arguable.arrayed.label.forEach(label => {
+            lines.push(`label: ${arguable.ultimate.label}`)
+        })
+        lines.push.apply(lines, body)
         await fs.mkdir(dots.tmp, { recursive: true })
-        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), `title: ${message}`, 'utf8')
+        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
     }
     let dirty = true
     while (dirty) {
