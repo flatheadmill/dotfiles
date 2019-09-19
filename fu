@@ -9,3 +9,4 @@ node-required for string in $(grep 'require\([^)]*\)' *.js | sed 's/.*require(\(
 node-release dots node recurse bash -c '{ git log -n 1 --format=%B . | grep Release; }'
 node-category dots node recurse bash -c '{ jq -r ".keywords[0]" package.json | grep "\(bluey\|cadence\|consensus\|nascent\|prolific\|hash\)"; }'
 nyc-coverage nyc npm test && nyc report --reporter=lcov && open coverage/lcov-report/index.html
+enscript FILE=; enscript -f Courier6 -rG -2 "$FILE" -o "$FILE".ps
