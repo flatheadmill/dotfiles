@@ -15,7 +15,7 @@
         -p, --processor <path>
             path to processor
 
-        -a, --ammend <string>
+        -a, --amend <string>
 
         --help
             display this message
@@ -97,8 +97,8 @@ require('arguable')(module, async arguable => {
         console.log(post.data)
     }
     await fs.unlink(path.resolve(dots.tmp, 'issue.txt'))
-    if (arguable.ultimate.ammend) {
-        const label = ({ closes: 'Closes' })[arguable.ultimate.ammend.toLowerCase()] || 'See'
+    if (arguable.ultimate.amend) {
+        const label = ({ closes: 'Closes' })[arguable.ultimate.amend.toLowerCase()] || 'See'
         await dots.zsh(`
             git commit --amend -m "$(git log -n 1 --format=%B .)" -m "See #$1." -e
         `)
