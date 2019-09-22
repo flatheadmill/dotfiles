@@ -53,7 +53,7 @@ require('arguable')(module, async arguable => {
             if (mode == 'body') {
                 body.push(line)
             } else if (!/\S/.test(line)) {
-                mode == 'body'
+                mode = 'body'
             } else {
                 title.push(line)
             }
@@ -68,7 +68,10 @@ require('arguable')(module, async arguable => {
         arguable.arrayed.label.forEach(label => {
             lines.push(`label: ${arguable.ultimate.label}`)
         })
-        lines.push.apply(lines, body)
+        if (body.length != 0) {
+            lines.push('')
+            lines.push.apply(lines, body)
+        }
         await fs.mkdir(dots.tmp, { recursive: true })
         await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
     }
