@@ -15,6 +15,8 @@
         -p, --processor <path>
             path to processor
 
+        -a, --ammend <string>
+
         --help
             display this message
 
@@ -85,13 +87,21 @@ require('arguable')(module, async arguable => {
             break
         }
     }
+    const results = []
     for (const post of posts) {
         post.fixup(posts, post)
         console.log(require('util').inspect(post, { depth: null }))
         const { data } = await dots.octokit[post.object][post.method](post.body)
         post.data = data
+        results.push(data)
         console.log(post.data)
     }
     await fs.unlink(path.resolve(dots.tmp, 'issue.txt'))
+    if (arguable.ultimate.ammend) {
+        const label = ({ closes: 'Closes' })[arguable.ultimate.ammend.toLowerCase()] || 'See'
+        await dots.zsh(`
+            git commit --amend -m "$(git log -n 1 --format=%B .)" -m "See #$1." -e
+        `)
+    }
     return 0
 })
