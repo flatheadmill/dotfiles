@@ -99,9 +99,10 @@ require('arguable')(module, async arguable => {
     await fs.unlink(path.resolve(dots.tmp, 'issue.txt'))
     if (arguable.ultimate.amend) {
         const label = ({ closes: 'Closes' })[arguable.ultimate.amend.toLowerCase()] || 'See'
+        console.log(results[0])
         await dots.zsh(`
-            git commit --amend -m "$(git log -n 1 --format=%B .)" -m "See #$1." -e
-        `)
+            git commit --amend -m "$(git log -n 1 --format=%B .)" -m "${label} #$0."
+        `, results[0].number)
     }
     return 0
 })

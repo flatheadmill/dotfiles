@@ -110,7 +110,7 @@ require('arguable')(module, async arguable => {
             }
         }
         await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
-        await dots.zsh('vim $1', path.resolve(dots.tmp, 'issue.txt'))
+        await dots.zsh('vim $0', path.resolve(dots.tmp, 'issue.txt'))
     }
     return 0
 })
