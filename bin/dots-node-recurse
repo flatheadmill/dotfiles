@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -t, --tag <string>
+            The release note tag to update.
+
+    ___ $ ___ en_US ___
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const processes = require('child_process')
+    const once = require('prospective/once')
+    const _module = require('module')
+
+    const seen = {}
+
+    async function exists (path) {
+        try {
+            const stat = await fs.stat(path)
+            return !! stat
+        } catch (error) {
+            if (error.code != 'ENOENT' && error.code != 'ENOTDIR') {
+                throw error
+            }
+            return false
+        }
+    }
+
+    async function find (directory, json) {
+        const email = json.author != null
+                    ? typeof json.author == 'object'
+                        ? json.author.email == 'alan@prettyrobots.com'
+                        : /^.*<alan@prettyrobots.com>$/.test(json.author)
+                    : false
+        if (!email) {
+            return 0
+        }
+        const config = json.dots
+        let _path
+        if (config == null || config.path == null) {
+            const $ = /^([^.]+)\./.exec(json.name)
+            if ($ != null) {
+                _path = `${$[1]}/${json.name}`
+            } else {
+                _path = json.name
+            }
+        } else {
+            _path = config.path    
+        }
+        let _dir = null
+        if (await exists(path.resolve(directory, _path))) {
+            _dir = path.resolve(directory, _path)
+        } else {
+            for (const dir of await fs.readdir(directory)) {
+                if (await exists(path.resolve(directory, dir, _path))) {
+                    _dir = path.resolve(directory, dir, _path)
+                }
+            }
+        }
+        if (_dir == null) {
+            console.log(`not found ${_path}`)
+            return 1
+        }
+        return await project(_dir)
+    }
+
+    async function project (directory) {
+        const _require = _module.createRequire(`${directory}/`)
+        const current = _require('./package.json')
+        if (seen[current.name]) {
+            return 0
+        }
+        seen[current.name] = true
+        console.log(`--- ${current.name} ---`)
+        const child = processes.spawn(arguable.argv[0], arguable.argv.slice(1), {
+            cwd: directory,
+            stdio: 'inherit'
+        })
+        const [ code, signal ] = await once(child, 'exit').promise
+        if (code != 0) {
+            console.log(`failed in ${directory}`)
+            return code || 1
+        }
+        for (const property of [ 'dependencies', 'devDependencies' ]) {
+            for (const name in current[property]) {
+                const pkg = _require(`${name}/package.json`)
+                const code = await find(path.resolve(directory, '../..'), pkg)
+                if (code != 0) {
+                    return code
+                }
+            }
+        }
+        return 0
+    }
+
+
+    return await project(process.cwd())
+})
