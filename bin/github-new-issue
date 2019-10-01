@@ -6,6 +6,8 @@
 
     options:
 
+        -t, --title <string>
+
         -i, --inherit   <number>
             file handles to inherit
 
@@ -48,15 +50,19 @@ require('arguable')(module, async arguable => {
         `)).output.trim().split('\n')
         const title = []
         const body = []
-        let mode = 'title'
-        for (const line of message) {
-            if (mode == 'body') {
-                body.push(line)
-            } else if (!/\S/.test(line)) {
-                mode = 'body'
-            } else {
-                title.push(line)
+        if (arguable.ultimate.title == null) {
+            let mode = 'title'
+            for (const line of message) {
+                if (mode == 'body') {
+                    body.push(line)
+                } else if (!/\S/.test(line)) {
+                    mode = 'body'
+                } else {
+                    title.push(line)
+                }
             }
+        } else {
+            title.push(arguable.ultimate.title)
         }
         const lines = [ `title: ${title.join('\n')}` ]
         if (arguable.ultimate.milestone) {
