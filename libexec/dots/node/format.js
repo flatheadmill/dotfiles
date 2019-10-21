@@ -153,7 +153,10 @@ function format (json) {
     return $([source]).replace(/^(\s+)\/\//gm, '$1  ')
 }
 
+module.exports = format
 
-console.log(format(json))
+if (module === process.mainModule) {
+    console.log(format(json))
+}
 
 // vim: set tw=0:
