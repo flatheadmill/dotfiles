@@ -1,0 +1,245 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -b, --bump <string>
+            Bump either major, minor version.
+
+        -n, --notes <string>
+            Release notes.
+
+        -f, --final
+            Remove any identifiers.
+
+        -I, --issueless
+
+        -i, --identify
+            Add an `alpha`, `beta` or `rc` identifier. 
+
+        -d, --dry-run
+            Show version changes, to not actually run.
+
+        -t, --title
+            Set a specific title for the project.
+
+        -p, --prefix
+            Use a specific tag prefix.
+
+        -v, --version
+            Use an explicit release version. 
+
+    ___ $ ___ en_US ___
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const processes = require('child_process')
+    const once = require('prospective/once')
+    const _module = require('module')
+    const coalesce = require('extant')
+    const $ = require('programmatic')
+
+    let { title, prefix, identifier, version, bump, identify, final: finalize } = arguable.ultimate
+    if (identifier != null && !~([ 'alpha', 'beta', 'rc' ]).indexOf(identifier)) {
+        arguable.abend('invalid.identifier')
+    }
+
+    if (version != null) {
+        if (bump != null) {
+            arguable.abend('version.bump') 
+        }
+        if (identify != null) {
+            arguable.abend('version.identify') 
+        }
+        if (finalize != null) {
+            arguable.abend('version.final') 
+        }
+    }
+
+    const dry = true
+
+    // **TODO** Does not detect untracked files.
+    const clean = await dots.zsh(`
+        git diff-index --quiet HEAD --
+    `)
+
+    if (clean.code != 0) {
+        arguable.abend('dirty.workspace')
+    }
+
+
+    const project = require(path.resolve(process.cwd(), 'package.json'))
+
+    if (version == null) {
+        let [ all, major, minor, micro, alpha, pre ] = 
+             /^(\d+)\.(\d+)\.(\d+)(?:$|-(alpha|beta|rc)\.(\d+)$)/.exec(project.version)
+        if (finalize) {
+            bump = 'none'
+        } else if (bump == null) {
+            if (alpha == null) {
+                bump = 'micro'
+            } else {
+                bump = 'pre'
+            }
+        }
+        switch (bump) {
+        case 'major':
+            major = +major + 1
+            minor = 0
+            micro = 0
+            break
+        case 'minor':
+            minor = +minor + 1
+            micro = 0
+            break
+        case 'micro':
+            micro = +micro + 1
+            break
+        case 'pre':
+            pre = +pre + 1
+            break
+        } 
+        version = `${major}.${minor}.${micro}`
+
+        if (identify != null) {
+            alpha = identify
+            pre = 0
+        }
+
+        if (alpha != null) {
+            version += `-${alpha}.${pre}` 
+        }
+    }
+
+    let tag = 'latest', untag = 'canary'
+    if (/^0\./.test(version) || /[^\d]\.\d+$/.test(version)) {
+        tag = 'canary'
+        untag = null
+    }
+
+    if (prefix == null) {
+        prefix = `${dots.prefix}v`
+    }
+    
+    if (title == null) {
+        title = dots.title
+    }
+
+    console.log(`${title} ${prefix}${dots.json.version} -> ${prefix}${version} (${tag})`)
+
+    if (arguable.ultimate['dry-run']) {
+        return 0
+    }
+
+    dots.json.version = version
+
+    await fs.writeFile('./package.json', dots.format(dots.json), 'utf8')
+
+    const separator = require('crypto').randomBytes(16).toString('hex')
+
+    const entries = []
+    for (const entry of (await dots.zsh(`
+            git log --format=%B${separator} . 1>&3
+        `)).output.split(`${separator}\n`)) {
+        if (/^Release/.test(entry)) {
+            break
+        }
+        entries.push(entry)
+    }
+
+    const notes = []
+    for (const entry of entries) {
+        const lines = entry.split('\n')
+        const note = [ ` * ${lines[0]}` ]
+        lines.reverse()
+        for (const line of lines) {
+            if (/^\S+$/.test(line)) {
+                continue
+            }
+            if (/^(?:See|Closes)/.test(line)) {
+                note.push(` ${line}`)
+            }
+        }
+        notes.push(note.join(''))
+    }
+
+    const number = await dots.issue({
+        title: `Release ${title} version ${version}.`,
+        labels: [ 'release' ],
+        body: notes
+    })
+    
+    if (number == null) {
+        return 1
+    }
+
+    const body = $([`
+        // Release ${title} version ${version}.
+        // __blank__
+        // ${notes.join('\n')}
+        // __blank__
+        // Closes #${number}.
+    `]).replace(/^\/\/ /gm, '')
+
+    console.log(body)
+
+    await dots.zsh(`
+        git add .
+        git commit -m "$0"
+        git tag ${prefix}${dots.json.version}
+        git push origin HEAD
+        git push --tags
+    `, body)
+
+    await dots.zsh(`
+        npm publish --tag "$0"
+    `, tag)
+
+    if (untag) {
+        const info = JSON.parse((await dots.zsh(`
+            npm info "$0" --json 1>&3
+        `, dots.json.name)).output)
+        if (untag in info['dist-tags']) {
+            await dots.zsh(`
+                echo npm dist-tag rm "$0" "$1" 1>&3
+            `, dots.json.name, untag)
+        }
+    }
+
+    try {
+        await fs.unlink(`${process.env.HOME}/.usr/var/cache/dots/node/outdated/dist-tags/${dots.json.name}`)
+    } catch (error) {
+        if (error.code != 'ENOENT') {
+            throw error
+        }
+    }
+
+    const release = $([`
+        // ${notes.join('\n')}
+        // __blank__
+        // Closes #${number}.
+    `]).replace(/^\/\/ /gm, '')
+
+    await dots.octokit.repos.createRelease({
+        ...dots.ownerRepo,
+        tag_name: `${prefix}${dots.json.version}`,
+        name: `${dots.title} v${dots.json.version}`,
+        body: release,
+        prerelease: tag == 'canary'
+    })
+
+    return 0
+})
