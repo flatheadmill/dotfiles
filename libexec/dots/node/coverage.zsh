@@ -13,5 +13,5 @@ jq -e '
 ' < coverage/coverage-summary._json > /dev/null
 
 if [ $? -ne 0 ]; then
-    istanbul report --format text
+    nyc report --format text
 fi
