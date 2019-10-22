@@ -6,6 +6,9 @@
 
     options:
 
+        -s, --skip <string>
+            Skip specified package. `.top` will skip the current package.
+
         -t, --tag <string>
             The release note tag to update.
 
@@ -28,6 +31,11 @@ require('arguable')(module, async arguable => {
     const _module = require('module')
 
     const seen = {}
+    const skip = {}
+
+    for (const skipping of arguable.arrayed.skip) {
+        skip[skipping] = true
+    }
 
     async function exists (path) {
         try {
@@ -86,16 +94,19 @@ require('arguable')(module, async arguable => {
             return 0
         }
         seen[current.name] = true
-        console.log(`--- ${current.name} ---`)
-        const child = processes.spawn(arguable.argv[0], arguable.argv.slice(1), {
-            cwd: directory,
-            stdio: 'inherit'
-        })
-        const [ code, signal ] = await once(child, 'exit').promise
-        if (code != 0) {
-            console.log(`failed in ${directory}`)
-            return code || 1
+        if (!(skip[current.name] || skip['.top'])) {
+            console.log(`--- ${current.name} ---`)
+            const child = processes.spawn(arguable.argv[0], arguable.argv.slice(1), {
+                cwd: directory,
+                stdio: 'inherit'
+            })
+            const [ code, signal ] = await once(child, 'exit').promise
+            if (code != 0) {
+                console.log(`failed in ${directory}`)
+                return code || 1
+            }
         }
+        skip['.top'] = false
         for (const property of [ 'dependencies', 'devDependencies' ]) {
             for (const name in current[property]) {
                 const pkg = _require(`${name}/package.json`)
