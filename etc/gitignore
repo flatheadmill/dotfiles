@@ -2,6 +2,7 @@
 .DS_Store
 .AppleDouble
 *.swp
+.dots
 /.imdone
 .tmux.run.sh
 npm-debug.log
