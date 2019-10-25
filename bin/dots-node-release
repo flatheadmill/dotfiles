@@ -17,8 +17,8 @@
 
         -I, --issueless
 
-        -i, --identify
-            Add an `alpha`, `beta` or `rc` identifier. 
+        -i, --identify <string>
+            Add an `alpha`, `beta` or `rc` identifier.
 
         -d, --dry-run
             Show version changes, to not actually run.
@@ -30,7 +30,7 @@
             Use a specific tag prefix.
 
         -v, --version
-            Use an explicit release version. 
+            Use an explicit release version.
 
     ___ $ ___ en_US ___
 
@@ -59,13 +59,13 @@ require('arguable')(module, async arguable => {
 
     if (version != null) {
         if (bump != null) {
-            arguable.abend('version.bump') 
+            arguable.abend('version.bump')
         }
         if (identify != null) {
-            arguable.abend('version.identify') 
+            arguable.abend('version.identify')
         }
         if (finalize != null) {
-            arguable.abend('version.final') 
+            arguable.abend('version.final')
         }
     }
 
@@ -84,7 +84,7 @@ require('arguable')(module, async arguable => {
     const project = require(path.resolve(process.cwd(), 'package.json'))
 
     if (version == null) {
-        let [ all, major, minor, micro, alpha, pre ] = 
+        let [ all, major, minor, micro, alpha, pre ] =
              /^(\d+)\.(\d+)\.(\d+)(?:$|-(alpha|beta|rc)\.(\d+)$)/.exec(project.version)
         if (finalize) {
             bump = 'none'
@@ -111,7 +111,7 @@ require('arguable')(module, async arguable => {
         case 'pre':
             pre = +pre + 1
             break
-        } 
+        }
         version = `${major}.${minor}.${micro}`
 
         if (identify != null) {
@@ -120,7 +120,7 @@ require('arguable')(module, async arguable => {
         }
 
         if (alpha != null) {
-            version += `-${alpha}.${pre}` 
+            version += `-${alpha}.${pre}`
         }
     }
 
@@ -133,13 +133,14 @@ require('arguable')(module, async arguable => {
     if (prefix == null) {
         prefix = `${dots.prefix}v`
     }
-    
+
     if (title == null) {
         title = dots.title
     }
 
     console.log(`${title} ${prefix}${dots.json.version} -> ${prefix}${version} (${tag})`)
 
+    console.log(arguable.ultimate)
     if (arguable.ultimate['dry-run']) {
         return 0
     }
@@ -181,18 +182,18 @@ require('arguable')(module, async arguable => {
         labels: [ 'release' ],
         body: notes
     })
-    
+
     if (number == null) {
         return 1
     }
 
-    const body = $([`
-        // Release ${title} version ${version}.
-        // __blank__
-        // ${notes.join('\n')}
-        // __blank__
-        // Closes #${number}.
-    `]).replace(/^\/\/ /gm, '')
+    const body = $(`
+        Release ${title} version ${version}.
+
+        `, notes.join('\n'), `
+
+        Closes #${number}.
+    `)
 
     console.log(body)
 
@@ -220,18 +221,20 @@ require('arguable')(module, async arguable => {
     }
 
     try {
-        await fs.unlink(`${process.env.HOME}/.usr/var/cache/dots/node/outdated/dist-tags/${dots.json.name}`)
+        await fs.unlink(`${process.env.HOME}/.usr/var/cache/dots/node/outdated/dist-tags/${dots.json.name}/json.json`)
     } catch (error) {
         if (error.code != 'ENOENT') {
             throw error
         }
     }
 
-    const release = $([`
-        // ${notes.join('\n')}
-        // __blank__
-        // Closes #${number}.
-    `]).replace(/^\/\/ /gm, '')
+    const release = $(`
+        `, notes.join('\n'), `
+
+        Closes #${number}.
+    `)
+
+    console.log(release)
 
     await dots.octokit.repos.createRelease({
         ...dots.ownerRepo,

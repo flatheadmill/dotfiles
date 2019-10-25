@@ -21,7 +21,7 @@
     {
                             "arguable":                     "^11.0.0-alpha.0",
                             "@octokit/rest":                "16.28.9",
-                            "programmatic":                  "^1.0.0",
+                            "programmatic":                 "^2.0.0-alpha.0",
                             "prospective":                  "^0.1.0-alpha.1"
     },
     "devDependencies":
