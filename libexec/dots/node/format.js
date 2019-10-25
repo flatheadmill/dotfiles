@@ -43,9 +43,9 @@ function format (json) {
             if (key == 'description') {
                 return $(`
                     "description":
-                    // __blank__
-                    //${json[key]},
-                    // __blank__
+
+                      ${json[key]},
+
                 `)
             } else if (typeof json[key] == 'string') {
                 var name = JSON.stringify(key) + ':'
@@ -71,13 +71,12 @@ function format (json) {
                     }
                     lines.push(line.join(', '))
                     lines = lines.map(function (line) {
-                        return '//                  ' + line
+                        return line
                     })
                     return $(`
                         ${JSON.stringify(key)}:
                         [
-                            // __reference__
-                            `, lines.join(',\n'), `
+                                                `, lines.join(',\n'), `
                         ],
                     `)
                         
@@ -85,35 +84,30 @@ function format (json) {
                     var contributors = json[key].map(function (contributor) {
                         var fields = []
                         for (var key in contributor) {
-                        var name = JSON.stringify(key)
-                        var spaces = new Array(9 - name.length).join(' ')
-                            fields.push('//                  ' +
-                                JSON.stringify(key) + ':' + spaces + JSON.stringify(contributor[key]))
+                            var name = JSON.stringify(key)
+                            var spaces = new Array(9 - name.length).join(' ')
+                            fields.push(`${JSON.stringify(key)}:${spaces}${JSON.stringify(contributor[key])}`)
                         }
-                        return $('                                                          \n\
-                        // __reference__                                                \n\
-                            ', fields.join(',\n'), '                                        \n\
-                        ')
+                        return fields.join(',\n')
                     }).join('\n},\n{\n')
-                    return $('                                                              \n\
-                        ' + JSON.stringify(key) + ':                                       \n\
-                        [{                                                                  \n\
-                        ', contributors, '                                                  \n\
-                        }],                                                                 \n\
-                    ')
+                    return $(`
+                        ${JSON.stringify(key)}:
+                        [{
+                                                `, contributors, `
+                        }],
+                    `)
                 }
             } else {
                 var properties = Object.keys(json[key])
-                if (key == 'nyc') {
-                return $(`
-                    ${JSON.stringify(key)}:
-                    {
-                        `, "//                  [ " + json[key].exclude.map(function (pattern) {
-                            return JSON.stringify(pattern)
-                        }).join(', '), ` ]
-                        // __reference__
-                    },
-                `)
+                if (key == '_nyc') {
+                    return $(`
+                        ${JSON.stringify(key)}:
+                        {
+                            `, "[ " + json[key].exclude.map(function (pattern) {
+                                return JSON.stringify(pattern)
+                            }).join(', ') + " ]", `
+                        },
+                    `)
                 }
                 if (key == 'dependencies' || key == 'devDependencies' || key == 'bin') {
                     properties.sort()
@@ -129,15 +123,17 @@ function format (json) {
                     return property + ':' + spaces + JSON.stringify(value)
                 })
 
-                properties = properties.map(function (line) {
-                    return '//                  ' + line
-                }).join(',\n')
-
+                if (properties.length == 0) {
+                    return $(`
+                        ${JSON.stringify(key)}:
+                        {
+                        },
+                    `)
+                }
                 return $(`
                     ${JSON.stringify(key)}:
                     {
-                        `, properties, `
-                        // __reference__
+                                            `, properties.join(',\n'), `
                     },
                 `)
             }
@@ -145,12 +141,11 @@ function format (json) {
 
     fields[fields.length - 1] = fields[fields.length - 1].replace(/,([^,]*$)/, '$1')
 
-    var source = $(`
-    {
-        `, fields.join('\n'), `
-    }
+    return $(`
+        {
+            `, fields.join('\n'), `
+        }
     `)
-    return $([source]).replace(/^(\s+)\/\//gm, '$1  ')
 }
 
 module.exports = format

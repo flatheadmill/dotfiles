@@ -22,7 +22,7 @@
                             "cadence":                      "1.0.1",
                             "delta":                        "1.2.x",
                             "node-github":                  "0.0.3",
-                            "programmatic":                 "0.0.x",
+                            "programmatic":                 "^2.0.0-alpha.2",
                             "semver":                       "5.3.x"
     },
     "devDependencies":
