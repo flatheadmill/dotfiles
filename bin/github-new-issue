@@ -20,6 +20,9 @@
         -l, --label <string>
             One or more labels to apply to issue.
 
+        -a, --amend <string>
+            Amend last commit with issue number.
+
         --help
             display this message
 
@@ -43,80 +46,45 @@ require('arguable')(module, async arguable => {
     const dots = await Dots(arguable)
     const fs = require('fs').promises
     const path = require('path')
-    const issue = await dots.read(path.resolve(dots.tmp, 'issue.txt'))
-    if (issue == null) {
+    const issue = {}
+    const title = []
+    const body = []
+    if (arguable.ultimate.title == null) {
         const message = (await dots.zsh(`
             git log -n 1 --format=%B . 1>&3
         `)).output.trim().split('\n')
-        const title = []
-        const body = []
-        if (arguable.ultimate.title == null) {
-            let mode = 'title'
-            for (const line of message) {
-                if (mode == 'body') {
-                    body.push(line)
-                } else if (!/\S/.test(line)) {
-                    mode = 'body'
-                } else {
-                    title.push(line)
-                }
+        let mode = 'title'
+        for (const line of message) {
+            if (mode == 'body') {
+                body.push(line)
+            } else if (!/\S/.test(line)) {
+                mode = 'body'
+            } else {
+                title.push(line)
             }
-        } else {
-            title.push(arguable.ultimate.title)
         }
-        const lines = [ `title: ${title.join('\n')}` ]
-        if (arguable.ultimate.milestone) {
-            lines.push(`milestone: ${arguable.ultimate.milestone}`)
-        }
-        if (arguable.ultimate.project) {
-            lines.push(`project: ${arguable.ultimate.project}`)
-        }
-        arguable.arrayed.label.forEach(label => {
-            lines.push(`label: ${arguable.ultimate.label}`)
-        })
-        if (body.length != 0) {
-            lines.push('')
-            lines.push.apply(lines, body)
-        }
-        await fs.mkdir(dots.tmp, { recursive: true })
-        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
+    } else {
+        title.push(arguable.ultimate.title)
     }
-    let dirty = true
-    while (dirty) {
-        dirty = false
-        const lines = (await dots.read(path.resolve(dots.tmp, 'issue.txt'))).split('\n') 
-        for (let i = 0, I = lines.length; i < I; i++) {
-            if (!/\S/.test(lines[i])) {
-                break
-            }
-            const $ = /^([^:]+):\s+(.*)$/.exec(lines[i])
-            const name = $[1], value = $[2]
-            switch (name) {
-            case 'milestone': {
-                    const title = (await dots.milestone(value)).title
-                    if (title != value) {
-                        lines[i] = `milestone: ${title}`
-                    }
-                }
-                break
-            case 'project': {
-                    const name = (await dots.project(value)).name
-                    if (name != value) {
-                        lines[i] = `project: ${name}`
-                    }
-                }
-                break
-            case 'label': {
-                    const name = (await dots.labels(value)).name
-                    if (name != value) {
-                        lines[i] = `label: ${name}`
-                    }
-                }
-                break
-            }
-        }
-        await fs.writeFile(path.resolve(dots.tmp, 'issue.txt'), lines.join('\n'), 'utf8')
-        await dots.zsh('vim $0', path.resolve(dots.tmp, 'issue.txt'))
+    issue.title = title.join('\n')
+    issue.body = body
+    if (arguable.ultimate.milestone) {
+        issue.milestone = arguable.ultimate.milestone
+    }
+    if (arguable.ultimate.project) {
+        issue.project = arguable.ultimate.project
+    }
+    issue.labels = arguable.arrayed.label
+    const number = await dots.issue(issue)
+    if (number == null) {
+        return 1
+    }
+    if (arguable.ultimate.amend) {
+        const label = ({ closes: 'Closes' })[arguable.ultimate.amend.toLowerCase()] || 'See'
+        console.log(number)
+        await dots.zsh(`
+            git commit --amend -m "$(git log -n 1 --format=%B .)" -m "${label} #$0."
+        `, number)
     }
     return 0
 })
