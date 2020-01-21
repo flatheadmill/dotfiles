@@ -23,7 +23,7 @@
         -d, --dry-run
             Show version changes, to not actually run.
 
-        -t, --title
+        -t, --title <string>
             Set a specific title for the project.
 
         -p, --prefix
