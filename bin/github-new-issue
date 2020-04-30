@@ -75,10 +75,14 @@ require('arguable')(module, async arguable => {
         issue.project = arguable.ultimate.project
     }
     issue.labels = arguable.arrayed.label
-    const number = await dots.issue(issue)
-    if (number == null) {
+    const issue = = await dots.issue(issue)
+
+    if (issue == null) {
         return 1
     }
+
+    const { number } = issue
+
     if (arguable.ultimate.amend) {
         const label = ({ closes: 'Closes' })[arguable.ultimate.amend.toLowerCase()] || 'See'
         console.log(number)

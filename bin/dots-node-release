@@ -177,20 +177,22 @@ require('arguable')(module, async arguable => {
         notes.push(note.join(''))
     }
 
-    const number = await dots.issue({
+    const issue = await dots.issue({
         title: `Release ${title} version ${version}.`,
         labels: [ 'release' ],
         body: notes
     })
 
-    if (number == null) {
+    if (issue == null) {
         return 1
     }
+
+    const { number, notes: edited }  = issue
 
     const body = $(`
         Release ${title} version ${version}.
 
-        `, notes.join('\n'), `
+        `, edited, `
 
         Closes #${number}.
     `)
