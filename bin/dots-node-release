@@ -111,6 +111,9 @@ require('arguable')(module, async arguable => {
         case 'pre':
             pre = +pre + 1
             break
+        case 'none':
+            alpha = null
+            break
         }
         version = `${major}.${minor}.${micro}`
 
