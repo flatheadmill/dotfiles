@@ -15,6 +15,9 @@
         -r, --root
             Run command in root directoy of multi-package repos.
 
+        -d, --depth
+            Depth first.
+
     ___ $ ___ en_US ___
 
         repository url not shorthand(url):
@@ -108,33 +111,49 @@ require('arguable')(module, async arguable => {
                 _directory = path.dirname(_directory)
             }
         }
-        if (skip[current.name] || skip['.top']) {
-            console.log(`--- ${current.name} (skip) ---`)
-        } else if (seen.directory[_directory]) {
-            console.log(`--- ${current.name} (root seen) ---`)
-        } else {
-            console.log(`--- ${current.name} ---`)
-            const child = processes.spawn(arguable.argv[0], arguable.argv.slice(1), {
-                cwd: _directory,
-                stdio: 'inherit'
-            })
-            const [ code, signal ] = await once(child, 'exit').promise
-            if (code != 0) {
-                console.log(`failed in ${directory}`)
-                return code || 1
+        const top = skip['.top']
+        skip['.top'] = false
+        async function descend () {
+            for (const property of [ 'dependencies', 'devDependencies' ]) {
+                for (const name in current[property]) {
+                    const pkg = _require(`${name}/package.json`)
+                    const code = await find(path.resolve(directory, '../..'), pkg)
+                    if (code != 0) {
+                        return code
+                    }
+                }
+            }
+            return null
+        }
+        async function execute () {
+            if (skip[current.name]) {
+                console.log(`--- ${current.name} (skip) ---`)
+            } else if (seen.directory[_directory]) {
+                console.log(`--- ${current.name} (root seen) ---`)
+            } else {
+                console.log(`--- ${current.name} ---`)
+                const child = processes.spawn(arguable.argv[0], arguable.argv.slice(1), {
+                    cwd: _directory,
+                    stdio: 'inherit'
+                })
+                const [ code, signal ] = await once(child, 'exit').promise
+                if (code != 0) {
+                    console.log(`failed in ${directory}`)
+                    return code || 1
+                }
+            }
+            return null
+        }
+        const order = arguable.ultimate.depth
+                    ? [ descend, execute ]
+                    : [ execute, descend ]
+        for (const command of order) {
+            const code = await command()
+            if (code != null) {
+                return code
             }
         }
         seen.directory[_directory] = true
-        skip['.top'] = false
-        for (const property of [ 'dependencies', 'devDependencies' ]) {
-            for (const name in current[property]) {
-                const pkg = _require(`${name}/package.json`)
-                const code = await find(path.resolve(directory, '../..'), pkg)
-                if (code != 0) {
-                    return code
-                }
-            }
-        }
         return 0
     }
 
