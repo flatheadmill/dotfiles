@@ -29,7 +29,7 @@
         -p, --prefix
             Use a specific tag prefix.
 
-        -v, --version
+        -v, --version <string>
             Use an explicit release version.
 
     ___ $ ___ en_US ___
