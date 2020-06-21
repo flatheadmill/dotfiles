@@ -34,7 +34,8 @@ function format (json) {
     var fields = ([
             'private', 'name', 'version', 'description', 'keywords', 'author',
             'contributors', 'homepage', 'bugs', 'license', 'repository',
-            'dependencies', 'devDependencies', 'main', 'bin', 'scripts', 'nyc'
+            'dependencies', 'devDependencies', 'main', 'bin', 'scripts', 'nyc',
+            'dots'
         ])
         .filter(function (key) {
             return json[key]
@@ -109,13 +110,19 @@ function format (json) {
                         },
                     `)
                 }
-                if (key == 'dependencies' || key == 'devDependencies' || key == 'bin') {
+                if (
+                    key == 'dependencies' || key == 'devDependencies' ||
+                    key == 'bin' || key == 'dots'
+                ) {
                     properties.sort()
                 }
                 properties = properties.map(function (property) {
                     var value = json[key][property]
                     property = JSON.stringify(property)
-                    if (key == 'dependencies' || key == 'devDependencies' || key == 'bin') {
+                    if (
+                        key == 'dependencies' || key == 'devDependencies' ||
+                        key == 'bin' || key == 'dots'
+                    ) {
                         var spaces = new Array(32 - property.length).join(' ')
                     } else {
                         var spaces = ' '
