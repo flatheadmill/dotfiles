@@ -85,7 +85,6 @@ else
 fi
 
 if [[ $current =~ '^\^' ]]; then
-    echo "MATCHED"
     release="^${release}"
 elif [[ $current =~ '^>=?' ]]; then
     release="^${release}"
@@ -99,4 +98,6 @@ echo "$title $current -> $release"
 sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$release'"/' package.json  > package.tmp.json
 mv package.tmp.json package.json
 
-git commit -a -m 'Upgrade `'$package'` to `'$release'`.'
+git commit -a -m 'Upgrade `'$package'` to `'$release'`.
+
+https://github.com/bigeasy/'$package'/releases/tag/v'$(echo $release | sed 's/^^//')
