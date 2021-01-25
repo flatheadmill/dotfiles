@@ -94,3 +94,6 @@ autocmd! User GoyoEnter nested call <SID>goyo_enter()
 autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
 filetype plugin indent off
+
+" Wrap only comments, not code.
+set formatoptions-=t
