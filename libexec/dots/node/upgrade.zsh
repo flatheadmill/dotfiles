@@ -75,6 +75,8 @@ fi
 typeset -A releases
 releases=($(jq -r '[ .["dist-tags"] | to_entries[] | .key, .value ] | join(" ")' < "$info"))
 
+repo=$(jq -r '.repository.url | capture("^.*/(?<repo>.*).git$") | .repo' < "$info")
+
 if [ -n "$o_version" ]; then
     release=$o_version
 elif [[ -z $o_canary ]]; then
@@ -100,4 +102,4 @@ mv package.tmp.json package.json
 
 git commit -a -m 'Upgrade `'$package'` to `'$release'`.
 
-https://github.com/bigeasy/'$package'/releases/tag/v'$(echo $release | sed 's/^^//')
+https://github.com/bigeasy/'$repo'/releases/tag/v'$(echo $release | sed 's/^^//')
