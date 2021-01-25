@@ -77,14 +77,13 @@ require('arguable')(module, async arguable => {
             _path = config.path    
         }
         let _dir = null
-        if (await exists(path.resolve(directory, _path))) {
-            _dir = path.resolve(directory, _path)
-        } else {
-            for (const dir of await fs.readdir(directory)) {
-                if (await exists(path.resolve(directory, dir, _path))) {
-                    _dir = path.resolve(directory, dir, _path)
-                }
+        for (const dir of await fs.readdir(directory)) {
+            if (await exists(path.resolve(directory, dir, _path))) {
+                _dir = path.resolve(directory, dir, _path)
             }
+        }
+        if (_dir == null && await exists(path.resolve(directory, _path))) {
+            _dir = path.resolve(directory, _path)
         }
         if (_dir == null) {
             console.log(`not found ${_path}`)
