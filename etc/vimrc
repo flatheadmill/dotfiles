@@ -1,6 +1,6 @@
 filetype off            " reset filetype detection for pathgen to work correctly
 "call pathogen#runtime_append_all_bundles()
-set nojoinspaces        " do not add two spaces after a period 
+set nojoinspaces        " do not add two spaces after a period
 set expandtab           " ensure consistency between editors
 set tabstop=4           " eight is too much, keep it short
 set shiftwidth=4        " eight is too much, keep it short
@@ -96,4 +96,25 @@ autocmd! User GoyoLeave nested call <SID>goyo_leave()
 filetype plugin indent off
 
 " Wrap only comments, not code.
-set formatoptions-=t
+" set formatoptions-=t
+
+" Sets the wrap for comments based on the indent. If the indent is small the
+" comments wrap at the same left margin. If it is large we allow the comments to
+" have a minimum width.
+fun! PrettyRobotsCommentate ()
+    if &textwidth != 0
+        let currentLine = getline('.')
+        let spaces = strlen(matchstr(getline('.'), '^ \+'))
+        if spaces > 12
+            let textwidth = 80 - 12 + spaces
+        else
+            let textwidth = 80
+        end
+        let &textwidth = textwidth
+    end
+endf
+
+autocmd  CursorMoved  *.html,*.js   :call PrettyRobotsCommentate()
+
+" Without this C99 compound literals do not highlight correctly.
+let c_no_curly_error=1
