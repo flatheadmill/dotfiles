@@ -24,6 +24,6 @@ require('arguable')(module, require('cadence')(function (async, program) {
         var repository = json.repository
         ok(repository, 'repository defined')
         ok(repository.type == 'git', 'repository is git')
-        console.log('https://travis-ci.org/' + repository.url)
+        console.log('https://travis-ci.com/' + repository.url)
     })
 }))
