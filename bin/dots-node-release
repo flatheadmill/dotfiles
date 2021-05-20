@@ -190,12 +190,12 @@ require('arguable')(module, async arguable => {
         return 1
     }
 
-    const { number, notes: edited }  = issue
+    const { number, notes: edited } = issue
 
     const body = $(`
         Release ${title} version ${version}.
 
-        `, edited, `
+        `, notes.join('\n'), `
 
         Closes #${number}.
     `)
