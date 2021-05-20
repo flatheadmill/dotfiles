@@ -97,7 +97,8 @@ autocmd! User GoyoLeave nested call <SID>goyo_leave()
 filetype plugin indent off
 
 " Wrap only comments, not code.
-" set formatoptions-=t
+au BufEnter,BufNewFile *.py,*.html,*.js set formatoptions-=t
+au BufLeave *.py,*.html,*.js set formatoptions+=t
 
 " Sets the wrap for comments based on the indent. If the indent is small the
 " comments wrap at the same left margin. If it is large we allow the comments to
