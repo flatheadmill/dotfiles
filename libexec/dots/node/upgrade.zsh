@@ -94,7 +94,7 @@ elif [[ $current = '*.x' ]]; then
     release="^${release}"
 fi
 
-echo "$title $current -> $release"
+echo '`'$package'`'" $current -> $release"
 [[ -n $o_dry_run ]] && exit
 
 sed 's/\("'"$package"'":[[:space:]]*\)".*"/\1"'$release'"/' package.json  > package.tmp.json
