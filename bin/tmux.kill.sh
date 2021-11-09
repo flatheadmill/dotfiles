@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Getting...
+#
+# '~/.dotfiles/bin/tmux.kill.sh KILL' terminated by signal 9
+#
+# `tmux` had been upgraded by Homebrew. Resolved by restarting `tmux`.
+
 signal=$1
 
 [ ! -e ~/.usr/tmp/tmux.run.pid ] && exit 0
