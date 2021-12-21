@@ -1,0 +1,159 @@
+#!/usr/bin/env node
+
+/*
+    ___ usage ___ en_US ___
+    usage: git-new-issue <options>
+
+    options:
+
+        -s, --skip <string>
+            Skip specified package. `.top` will skip the current package.
+
+        -t, --tag <string>
+            The release note tag to update.
+
+        -r, --root
+            Run command in root directoy of multi-package repos.
+
+        -d, --depth
+            Depth first.
+
+    ___ $ ___ en_US ___
+
+        repository url not shorthand(url):
+            error: Use a shorthand url for the repository. Current URL:
+
+                %s
+
+    ___ . ___
+*/
+require('arguable')(module, async arguable => {
+    const Dots = require('../lib/dots')
+    const dots = await Dots(arguable)
+    const fs = require('fs').promises
+    const path = require('path')
+    const processes = require('child_process')
+    const once = require('prospective/once')
+    const _module = require('module')
+
+    const seen = { module: {}, directory: {} }
+    const skip = {}
+
+    for (const skipping of arguable.arrayed.skip) {
+        skip[skipping] = true
+    }
+
+    async function exists (path) {
+        try {
+            const stat = await fs.stat(path)
+            return !! stat
+        } catch (error) {
+            if (error.code != 'ENOENT' && error.code != 'ENOTDIR') {
+                throw error
+            }
+            return false
+        }
+    }
+
+    async function find (directory, json, tree, path_) {
+        const email = json.author != null
+                    ? typeof json.author == 'object'
+                        ? json.author.email == 'alan@prettyrobots.com'
+                        : /^.*<alan@prettyrobots.com>$/.test(json.author)
+                    : false
+        if (!email) {
+            return 0
+        }
+        const config = json.dots
+        let _path
+        if (config == null || config.path == null) {
+            const $ = /^([^.]+)\./.exec(json.name)
+            if ($ != null) {
+                _path = `${$[1]}/${json.name}`
+            } else {
+                _path = json.name
+            }
+        } else {
+            _path = config.path    
+        }
+        let _dir = null
+        for (const dir of await fs.readdir(directory)) {
+            if (await exists(path.resolve(directory, dir, _path))) {
+                _dir = path.resolve(directory, dir, _path)
+            }
+        }
+        if (_dir == null && await exists(path.resolve(directory, _path))) {
+            _dir = path.resolve(directory, _path)
+        }
+        if (_dir == null) {
+            console.log(`not found ${_path}`)
+            return 1
+        }
+        return await project(_dir, tree, path_)
+    }
+
+    async function project (directory, tree, path_) {
+        const _require = _module.createRequire(`${directory}/`)
+        let current
+        try {
+            current = _require('./package.json')
+        } catch (error) {
+            console.error(`searching for ${directory}`)
+            throw error
+        }
+        if (~path_.indexOf(current.name)) {
+            return 0
+        }
+        //seen.module[current.name] = true
+        let _directory = directory
+        if (arguable.ultimate.root) {
+            try {
+                await fs.stat(path.resolve(_directory, '.git'))
+            } catch (error) {
+                if (error.code != 'ENOENT') {
+                    throw error
+                }
+                _directory = path.dirname(_directory)
+            }
+        }
+        const top = skip['.top']
+        skip['.top'] = false
+        const child = tree[current.name] = { _directory: directory }
+        async function descend () {
+            for (const property of [ 'dependencies', 'devDependencies' ]) {
+                for (const name in current[property]) {
+                    const pkg = _require(`${name}/package.json`)
+                    const code = await find(path.resolve(directory, '../..'), pkg, child, path_.concat(current.name))
+                    if (code != 0) {
+                        return code
+                    }
+                }
+            }
+            return null
+        }
+        async function execute () {
+            return null
+        }
+        const order = arguable.ultimate.depth
+                    ? [ descend, execute ]
+                    : [ execute, descend ]
+        for (const command of order) {
+            const code = await command()
+            if (code != null) {
+                return code
+            }
+        }
+        seen.directory[_directory] = true
+        return 0
+    }
+
+    const tree = {}
+    const code = await project(process.cwd(), tree, [])
+    if (code != 0) {
+        return code
+    }
+
+    console.log(JSON.stringify(tree, null, 4))
+
+    return 0
+})

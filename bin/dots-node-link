@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const data = fs.readFileSync(0, "utf-8");
+
+const json = JSON.parse(data)
+
+const root = Object.keys(json).shift()
+
+for (const project in json[root]) {
+    if (project != '_directory') {
+        console.log(`rm -rf node_modules/${project}`)
+        console.log(`ln -s ${json[root][project]._directory} node_modules/${project}`)
+    }
+}
