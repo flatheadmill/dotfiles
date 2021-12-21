@@ -64,6 +64,7 @@ Plug 'sainnhe/vim-color-lost-shrine'
 Plug 'reedes/vim-pencil'
 Plug 'prurigro/vim-markdown-concealed'
 Plug 'endel/vim-github-colorscheme'
+Plug 'hashivim/vim-terraform'
 
 call plug#end()
 
