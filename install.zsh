@@ -116,6 +116,8 @@ create_rc .tmux.conf tmux.conf
 create_rc .gitconfig gitconfig
 create_rc .vimrc vimrc
 
+mkdir -p ~/.usr/bin ~/.usr/tmp
+
 # Tired of wrestling with Unicode.
 cd ~/.oh-my-zsh && patch -p 1 < ~/.dotfiles/share/terminalparty.patch
 
