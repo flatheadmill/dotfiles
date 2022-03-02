@@ -23,7 +23,7 @@ au BufRead,BufNewFile *.tf,*.rb,*.yaml,*yml,*.cr set sw=2 ts=2
 au BufRead,BufNewFile *._coffee,*.coffee set comments=:# ft=coffee
 au BufRead,BufNewFile *._js set comments=:# ft=javascript
 au BufEnter rules set noet
-au BufEnter Makefile set noet
+au BufEnter,BufNewFile *.go,*.bash,Makefile set noet
 au BufEnter COMMIT_EDITMSG set tw=72
 
 " Do you remember the time you spent with Jamfiles?

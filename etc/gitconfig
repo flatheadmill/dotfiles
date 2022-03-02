@@ -17,9 +17,11 @@
   templatedir = ~/.dotfiles/etc/git.template
 ; cruft specific to my particular blend of development environment
 [core]
-	excludesfile = ~/.dotfiles/etc/gitignore
+  excludesfile = ~/.dotfiles/etc/gitignore
   ; enable all defaults, plus the non-default `tab-in-indent`.
   whitespace = trailing-space,space-before-tab,tab-in-indent
+  attributesFile = ~/.dotfiles/etc/git/attributes
+  pager = less -x1,5
 ; oft typed urls
 [url "git@github.com:bigeasy/"]
   insteadOf = bigeasy:

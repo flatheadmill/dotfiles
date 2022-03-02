@@ -1,0 +1,6 @@
+# [Mm]akefile         makefile
+# *.makefile          makefile
+[attr]tabbed whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
+
+*.bash whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
+modules/*/apply whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
