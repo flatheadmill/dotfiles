@@ -3,4 +3,6 @@
 [attr]tabbed whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
 
 *.bash whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
+*.go whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
+go.mod whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
 modules/*/apply whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
