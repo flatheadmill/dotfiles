@@ -8,5 +8,6 @@ git-working for file in $(find . -type d -depth 1); do (cd $file && test -d .git
 node-required for string in $(grep 'require\([^)]*\)' *.js | sed 's/.*require(\([^)]*\)).*/\1/'); do node -p "$string" 2>/dev/null; done | sort | uniq
 node-release dots node recurse bash -c '{ git log -n 1 --format=%B . | grep Release; }'
 node-category dots node recurse bash -c '{ jq -r ".keywords[0]" package.json | grep "\(bluey\|cadence\|consensus\|nascent\|prolific\|hash\)"; }'
+node-outdated dots node outdated -u bigeasy | awk '{ print $1 }' | xargs -n 1 dots node upgrade -c
 nyc-coverage nyc npm test && nyc report --reporter=lcov && open coverage/lcov-report/index.html
 enscript FILE=; enscript -f Courier6 -rG -2 "$FILE" -o "$FILE".ps
