@@ -26,6 +26,9 @@
 [url "git@github.com:bigeasy/"]
   insteadOf = bigeasy:
   insteadOf = git://github.com/bigeasy/
+[url "git@github.com:flatheadmill/"]
+  insteadOf = flatheadmill:
+  insteadOf = git://github.com/flatheadmill/
 ; attempt to push read-only repos back to git if you can
 [url "git@github.com:"]
   pushInsteadOf = https://github.com/
