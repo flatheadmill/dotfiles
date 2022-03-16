@@ -8,6 +8,6 @@ if [[ -e "$HOME/.nvm" ]]; then
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 fi
 
-if [[ -e "$HOME/.gvim/scripts/gvm" ]]; then
-    source /home/homeport/.gvm/scripts/gvm
+if [[ -e "$HOME/.gvm/scripts/gvm" ]]; then
+    source "$HOME/.gvm/scripts/gvm"
 fi
