@@ -88,7 +88,7 @@ if ! [[ -e "$HOME/.vim/autoload/plug.vim" ]]; then
 fi
 
 if ! [ -e "$HOME/.dotfiles" ]; then
-  git clone --recursive git://github.com/flatheadmill/dotfiles.git "$HOME/.dotfiles"
+  git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
 fi
 
 stamp=$(date +'%F-%T' | sed 's/:/-/g')
