@@ -65,7 +65,7 @@ Plug 'reedes/vim-pencil'
 Plug 'prurigro/vim-markdown-concealed'
 Plug 'endel/vim-github-colorscheme'
 Plug 'hashivim/vim-terraform'
-Plug 'dpc/vim-smarttabs'
+"Plug 'dpc/vim-smarttabs'
 
 call plug#end()
 
