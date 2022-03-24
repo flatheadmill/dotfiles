@@ -66,6 +66,7 @@ Plug 'prurigro/vim-markdown-concealed'
 Plug 'endel/vim-github-colorscheme'
 Plug 'hashivim/vim-terraform'
 "Plug 'dpc/vim-smarttabs'
+Plug 'lifepillar/pgsql.vim'
 
 call plug#end()
 
