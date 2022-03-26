@@ -12,13 +12,15 @@ set visualbell          " don't disturb the neighbors
 let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
+" TODO Learn how to set settings by file type.
+
 " <!--+
 "     | pretty xml comments
 "     +-->
 au BufEnter *.xml,*.xslt,*.xsl set comments=s4:<!--,mb:=-,mb:\|,ex:-->
 au BufLeave *.xml,*.xslt,*.xsl set comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
 au BufRead,BufNewFile *.coffee set comments=:#
-au BufRead,BufNewFile *.js set sw=4 ts=4
+au BufRead,BufNewFile *.js,*.bash set sw=4 ts=4
 au BufRead,BufNewFile *.tf,*.rb,*.yaml,*yml,*.cr set sw=2 ts=2
 au BufRead,BufNewFile *._coffee,*.coffee set comments=:# ft=coffee
 au BufRead,BufNewFile *._js set comments=:# ft=javascript
