@@ -11,3 +11,7 @@ fi
 if [[ -e "$HOME/.gvm/scripts/gvm" ]]; then
     source "$HOME/.gvm/scripts/gvm"
 fi
+
+if [[ -e "$HOME/.cargo/env" ]]; then
+    source "$HOME/.cargo/env"
+fi
