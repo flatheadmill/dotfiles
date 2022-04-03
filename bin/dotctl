@@ -1,0 +1,894 @@
+#!/usr/bin/env zsh
+
+# Parses somewhat like gnu getopt but without the completion of arguments,
+# with the potential to the `--no-` toggle, but I haven't gotten around to it.
+#
+# Does implement counting, so `-vvv` can be three times as verbose, and toggling
+# instead of flags so `-qq` can be quiet and then not-quiet, although I've never
+# encountered that in the wild.
+
+# Used require gnu-getopt, which would have been an annoyance on OS X. Since
+# we've gone with `zsh` to make OS X happy, we can go further and remove this
+# core `dotctl` component that would conflict with the OS X installed BSD
+# `getopt`.
+
+# Note that getopt requires you to eval to set the argument array so we decided
+# to go nuts and generate a script that will set local variables or emit error
+# messages if the argument parse fails.
+
+#
+zsh_parse_arguments() {
+    local error=${${1:-}:q} context=${${2:-}:q}
+    shift 2
+
+    declare -A argument_properties
+
+    local regex short long kind variable default
+
+    while :
+    do
+        case "$1" in
+            --)
+                shift
+                break
+                ;;
+            *)
+                regex='^([a-zA-Z0-9]?),([^@:#]*)([@:#]?)(=.*)?$'
+                [[ "$1" =~ $regex ]] || { print -R "error definition ${1:q}"; return; }
+                short=${match[1]} long=${match[2]} kind=${match[3]} variable= default="${match[4]}"
+                [[ -z "$long" ]] && variable=o_$short || variable=o_$long
+                if [[ "$default" != '' ]]; then
+                    case x"$kind" in
+                        x )
+                            kind=flag
+                            [[ "${default:1}" =~ ^[0-1]$ ]] || { print -R "$error $context boolean ${1:q}" && return; }
+                            print -R "local $variable=${default:1}"
+                            ;;
+                        x\! )
+                            kind=toggle
+                            [[ "${default:1}" =~ ^[0-1]$ ]] || { print -R "$error $context boolean ${1:q})" && return; }
+                            print -R "local $variable=${default:1}"
+                            ;;
+                        x\# )
+                            kind=count
+                            [[ "${default:1}" =~ ^-?[0-9]+$ ]] || { print -R "$error $context integer ${1:q}" && return; }
+                            print -R "local $variable=${default:1}"
+                            ;;
+                        x: )
+                            kind=value
+                            print -R "declare -a $variable=( ${default:1:q} )"
+                            ;;
+                        x@ )
+                            { print -R "$error $context no_defaults ${1:q}" && return; }
+                            ;;
+                    esac
+                else
+                    case x"$kind" in
+                        x )
+                            kind=flag
+                            print -R "local $variable=1"
+                            ;;
+                        x\! )
+                            kind=toggle
+                            print -R "local $variable=0"
+                            ;;
+                        x\# )
+                            kind=count
+                            print -R "local $variable=0"
+                            ;;
+                        x: )
+                            kind=value
+                            print -R "declare -a $variable"
+                            ;;
+                        x@ )
+                            kind=array
+                            print -R "declare -a $variable"
+                            ;;
+                    esac
+                fi
+                if [[ -n "$long" ]]; then
+                    argument_properties["--${long}"]="kind=$kind variable=$variable"
+                fi
+                if [[ -n "$short" ]]; then
+                    argument_properties["-${short}"]="kind=$kind variable=$variable"
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    declare -a args=( "$@" )
+    local i=1 arged flag
+    while [[ $i -le ${#args[@]} ]]
+    do
+        case "${args[$i]}" in
+            -- )
+                let i=i+1
+                break
+                ;;
+            --* )
+                arged=1
+                regex='^(--[a-zA-Z0-9]*)(=.*)?$'
+                [[ "${args[$i]}" =~ $regex ]] || { print -R "$error $context unknown ${1:q}"; return; }
+                long="${match[1]}"
+                if [[ "$match[2]" != '' ]]; then
+                    arged=0
+                    args[i]=${match[2]:1}
+                else
+                    let i=i+1
+                fi
+                flag=$long
+                [[ -z "${argument_properties["$long"]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
+                eval "${argument_properties["$long"]}"
+                if [[ $kind == toggle && "$long" =~ no- ]]; then
+                    print -R "$variable=0"
+                fi
+                ;;
+            -* )
+                short="${args[$i]}"
+                short="${short:0:2}"
+                flag=$short
+                [[ -z "${argument_properties["$short"]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
+                eval "${argument_properties["$short"]}"
+                case "$kind" in
+                    array | value )
+                        if [[ ${#short} -eq 2 ]]; then
+                            let i=i+1
+                        else
+                            args[i]=${short:2}
+                        fi
+                        ;;
+                    * )
+                        # TODO If you have args a b and c and you get -abd what
+                        # does getopt do? Seems to just append...
+                        if [[ ${#args[i]} -gt 2 ]]; then
+                            args[i]="-${short:2}"
+                        else
+                            let i=i+1
+                        fi
+                        ;;
+                esac
+                ;;
+            *)
+                break
+                ;;
+        esac
+        case "$kind" in
+            flag | count | toggle )
+                [[ $arged -eq 0 ]] && { print -R "$error $context no_args ${flag:q}"; return; }
+                ;;
+        esac
+        case "$kind" in
+            flag )
+                print -R "$variable=0"
+                ;;
+            count )
+                print -R "let $variable=$variable+1"
+                ;;
+            toggle )
+                print -R "[[ \$$variable -eq 0 ]] && $variable=1 || variable=0"
+                ;;
+            value )
+                print -R "${variable}[1]=${args[$i]:q}"
+                let i=i+1
+                ;;
+            array )
+                print -R "${variable}+=(${args[$i]:q})"
+                let i=i+1
+                ;;
+        esac
+    done
+
+    [[ $i -eq $(( ${#args[@]} + 1 )) ]] && print -R "set --" || print -R "set -- ${(@)args[$i,-1]:q}"
+}
+
+dotctl_parse_arguments_error() {
+    print -R -u 2 "@"
+    exit 1
+}
+
+# Afraid to run `rm -rf` on my machine. Want to have a chance to check what I'm
+# removing before I remove it, so when I do need to create temp files, I make a
+# note of every temp file I created. Then check that the file is in something
+# that looks like a temp directory before deleting at cleanup.
+
+# Note that if you do end up checking out a `.git` repository you can add the
+# file to the `rm` list using `find` or `zsh` globbing. It's not six of one,
+# half dozen the other. It's a three stage `rm -rf`. Create a list. Very list.
+# Delete.
+
+# TODO Rather than having the caller preserve the correct order we should be
+# able to delete by sorting the absolute file names by their length, this would
+# fall out of just calling `sort -r`. Rather, having `zsh` sort a list of keys.
+
+# TODO Maybe the RM list should live in the scope of main.
+
+#
+declare -A ACRECTL_RM
+ACRETMP=
+
+dotctl_temporary_directory() {
+    [[ -n "$ACRETMP" ]] && return
+    ACRETMP="$(mktemp -d)"
+    ACRECTL_RM[$ACRETMP]=0
+}
+
+dotctl_temporary() {
+    local temporary=${1:-}
+    [[ "$temporary" == "$ACRETMP"* ]] || abend <<'    EOF'
+        error: Temporary file or directory $temporary not a child of $ACRETMP
+    EOF
+    while [[ $ACRECTL_RM[$temporary] != 0 ]]; do
+        ACRECTL_RM[$temporary]=0
+        temporary=${temporary%/*}
+    done
+}
+
+dotctl_cleanup() {
+    local temporary exmaple
+    eval set -- ${(@O)${(@k)ACRECTL_RM}:q}
+    if [[ $# -ne 0 ]]; then
+        example="$(mktemp -d)"
+        [[ "${example%/*}" == "${ACRETMP%/*}" ]] || abend <<'        EOF'
+            error: Temporary directories are now created in a different location.
+        EOF
+        rmdir "$example"
+    fi
+    while [[ $# -ne 0 ]]; do
+        temporary=${1:-}
+        shift
+        [[ "$temporary" = "$ACRETMP"* ]] || <<'        EOF'
+            error: Temporary file $temporary not a child of $ACRETMP
+        EOF
+        if [[ -e "$temporary" ]]; then
+            if [[ -d "$temporary" ]]; then
+                rmdir "$temporary"
+            else
+                rm "$temporary"
+            fi
+        fi
+    done
+}
+
+trap dotctl_cleanup EXIT INT TERM
+
+# TODO AWK is nice, but replace with a while loop.
+
+# Extract a string resource from this source file. String resources are within
+# comments. They begin with a resource name surrounded by three underbars. We're
+# rather particular about white space, there should be only one space separating
+# the comment the underbars and the resource name. Furthermore, the comment must
+# begin on the first column. The string resource is terminated by a line that
+# has a comment followed by three underbars, so either the next string resource
+# or a sole three underbar terminator.
+
+# `name` -- the name of the string resource to find.
+
+#
+dotctl_string_resource() {
+    local name=${1:-}
+    awk '/^# ___ '$name' ___/{flag=1;next}/^# ___/{flag=0}flag' "$ZSH_ARGZERO" | sed -E 's/^# ?//g'
+}
+
+dotctl_parse_arguments() {
+    local command=${1:-}
+    zsh_parse_arguments dotctl_parse_arguments_error "$@"
+    print -R "[[ \$o_help -eq 0 ]] && dotctl_usage ${command:q}"
+}
+
+# Extracts a string using `dotctl_string_resource` and runs it through `groff`
+# to create a man page when the user requests help.
+#
+# `usage` -- underbar delimited name of command.
+
+#
+dotctl_usage() {
+    local usage=${1:-} cols="$(tput cols)"
+    [[ $cols -gt 90 ]] && cols=$(($cols - 10))
+    $groff -rLL=${cols}n -rLT=${cols}n -Wall -mtty-char -Tutf8 -man -c <(dotctl_string_resource usage_$usage) | less
+    exit
+}
+
+# Create a list of valid commands based on the command function declarations.
+IFS=$'\n' read -d '' -r -A ACRECTL_COMMANDS < <( \
+    sed -n 's/^dotctl_command_\(.*\)() {$/\1/p' $0 \
+)
+
+dotctl_next_command() {
+    local prefix=$1 command=$2
+    shift 2
+    for func in "${ACRECTL_COMMANDS[@]}"; do
+        if [[ "$func" == "$prefix$command" ]]; then
+            "dotctl_command_$func" "$@"
+            break
+        fi
+    done
+}
+
+dotctl_heredoc() {
+    local heredoc spaces=65536 leading='^( +)([^[:space:]])' IFS='' dedented
+    declare -a lines
+    while read -r line; do
+        lines+=("$line")
+        if [[ "$line" =~ $leading ]]; then
+            if [[ "${#match[1]}" -lt "$spaces" ]]; then
+                spaces="${#match[1]}"
+            fi
+        else
+            echo miss
+        fi
+    done < /dev/stdin
+    read -r -d '' dedented < <(printf "%s\n" "${lines[@]}" | sed -E 's/^ {'$spaces'}//')
+    eval "$({
+        print "cat <<EOF"
+        print -Rn "$dedented"
+        print "EOF"
+    })"
+}
+
+abend() {
+    dotctl_heredoc < /dev/stdin 1>&2
+    exit 1
+}
+
+warn() {
+    dotctl_heredoc < /dev/stdin 1>&2
+}
+
+# https://stackoverflow.com/a/4025065
+dotctl_vercomp() {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=(${=1}) ver2=(${=2})
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=1; i<=${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 2
+        fi
+    done
+    return 0
+}
+
+# NB: This was once nested inside the a process substitution but I got an
+# "ambiguous redirect" error. It is easier to read in a separate function
+# anyway.
+#
+#   cat < <({
+#       cat <<'    EOF'
+#           ,
+#       EOF
+#   })
+
+dotctl_prompt() {
+    dotctl_heredoc <<'    EOF'
+        .pl 1
+        .ll 80
+        .in 4
+        .sp 1
+    EOF
+    print -R "$check_rationale"
+    if [[ $reason == missing ]]; then
+        action=install
+        dotctl_heredoc <<'        EOF'
+            .sp 1
+            .in 4
+            However the command \fB${program}\fR is not found in your path. If
+            you're certain you installed \fB${program}\fR, please update your
+            \fBPATH\fR environment variable. If you haven't installed
+            \fB${program}\fR you can install it with the following command.
+            .sp 1
+            .in 8
+            .nh
+            ${(P)installer}
+            .hy
+            .sp 1
+            .in 4
+        EOF
+    else
+        action=uprade
+        dotctl_heredoc <<'        EOF'
+            .sp 1
+            .in 4
+            You currently have \fB${program}\fR version ${current_version}
+            installed. \fBdotctl\fR requires version ${check_version} or
+            greater. You can update your version of \fB${program}\fR with the
+            following command.
+            .sp 1
+            .in 8
+            .nh
+            ${(P)installer}
+            .hy
+            .sp 1
+            .in 4
+        EOF
+    fi
+    if [[ ! -t 0 ]]; then
+        dotctl_heredoc <<'        EOF'
+            \fBdotctl\fR can run this ${action} for you, but it will need to
+            prompt you for your approval and the command you're running is
+            reading from standard input so \fBdotctl\fR cannot ask you to enter
+            yes or no.
+            .sp 1
+            You can run any command with a file substitution and it will be as
+            secure piping from standard in. This will free standard in so you
+            will able to use to answer yes or no at a prompt.
+            .sp 1
+            .in 8
+            .nh
+            dotctl 1password add vault secret <(echo hello)
+            .hy
+            .sp 1
+            .in 4
+            The example above is equivalent to the example below.
+            .sp 1
+            .in 8
+            .nh
+            echo hello | dotctl 1password vault secret -
+            .hy
+            .sp 1
+            .in 4
+            You can also install depednencies explictly by passing using the
+            \fBdotctl\ dependencies\ install\fI command.
+            .sp 1
+            .in 8
+            .nh
+            dotctl dependencies install $program
+            .hy
+            .sp 1
+            .in 4
+            If there are still more dependencies you will see this message for
+            the new dependency. We want to make sure you have a chance to review
+            every dependency that is installed on your system.
+        EOF
+    elif [[ "$os" == osx ]]; then
+        dotctl_heredoc <<'        EOF'
+            \fBdotctl\fR can run this ${action} for you now.
+            .sp 1
+            .in 4
+            Would you like \fBdotctl\fR to ${action} \fB${program}\fR?
+            .in 8
+            Only 'yes' will be accepted to approve.
+        EOF
+    else
+        dotctl_heredoc <<'        EOF'
+            If you have \fBsudo\fR privileges, \fBdotctl\fR can run this ${action}
+            for you now.
+            .sp 1
+            .in 4
+            Would you like \fBdotctl\fR to ${action} \fB${program}\fR?
+            .in 8
+            Only 'yes' will be accepted to approve.
+        EOF
+    fi
+}
+
+dotctl_text_prompt() {
+    local however=$(printf "$(dotctl_string_resource prompt_command)" $program $program $program)
+    dotctl_string_resource rationale_$program
+    echo "$however" | tr $'\n' ' ' | fold -w 74 -s | sed 's/^/    /'
+    echo ""
+    echo "        ${(P)installer}"
+    echo ""
+    if [[ ! -t 0 ]]; then
+        printf "$(dotctl_string_resource prompt_install_no_tty)\n" $program
+    elif [[ "$os" == osx ]]; then
+        printf "$(dotctl_string_resource prompt_install_user)\n" $program
+    fi
+}
+
+dotctl_prompt_install() {
+    local reason=missing current_version
+
+    if whence "${check_path}" > /dev/null; then
+        # https://unix.stackexchange.com/a/278439
+        current_version=$(eval "${check_version_get}")
+        dotctl_vercomp ${current_version} ${check_version}
+        if [[ $? -eq 2 ]]; then
+            reason=outdated
+        else
+            reason=none
+        fi
+    fi
+
+    if [[ $reason != none ]]; then
+        local installer=install_${reason}
+        if [[ ${dotctl_registers[install_force]} -eq 0 ]]; then
+            print -n '' | { eval "${(P)installer}"; }
+        else
+            local check_prompt
+            if [[ $check_groff -eq 0 ]]; then
+                IFS='' read -r -d '' check_prompt < <(dotctl_prompt)
+                print -Rn "$check_prompt" | $groff -Tascii | less -XE
+            else
+                dotctl_text_prompt
+            fi
+            print "" # Couldn't figure out how to get `groff` to add this last line.
+            if [[ -t 0 ]]; then
+                read -r yn\?"        Enter a value: "
+                print ""
+                if [[ "$yn" == yes ]]; then
+                    eval "${(P)installer}"
+                else
+                    exit 1
+                fi
+            else
+                exit 1
+            fi
+        fi
+        [[ $install_package_manager -eq 0 ]] && dotctl_registers[install_package_manager]=0
+    fi
+}
+
+dotctl_prompt_uninstall() {
+    local reason=missing current_version install_is_installed=1
+    if eval "$install_check_installed"; then
+        if [[ -t 0 ]] || true; then
+            dotctl_heredoc <<'            EOF' | $groff -Tascii | less -XE
+                .pl 1
+                .ll 80
+                .in 4
+                .sp 1
+                You are about to uninstall \fB${program}\fR with the following
+                command.
+                .sp 1
+                .in 8
+                $install_uninstall
+                .sp 1
+                .in 4
+                Would you like \fBdotctl\fR to ${action} \fB${program}\fR?
+                .in 8
+                Only 'yes' will be accepted to approve.
+            EOF
+            print ""
+            read -r yn\?"        Enter a value: "
+            print ""
+            if [[ "$yn" == yes ]]; then
+                eval "$install_uninstall"
+            else
+                exit 1
+            fi
+        elif [[ ${dotctl_registers[install_force]} -eq 0 ]]; then
+            eval "$install_uninstall"
+        else
+            exit 1
+        fi
+    fi
+}
+
+dotctl_configure_dependency() {
+    local operation=${1:-} program=${2:-}
+
+    # Switched configuration for installers based on platform.
+
+    local install_missing install_outdated install_check_installed
+
+    case "$os" in
+        # OS X uses brew as its package installer. So far we've not had to
+        # install with anything other than brew.
+        osx )
+            declare -a default_installer_arguments=( "$program" )
+            case "$program" in
+                age-keygen )
+                    default_installer_arguments=( age ) ;;
+                flux )
+                    default_installer_arguments=( fluxcd/tap/flux ) ;;
+                gcloud )
+                    default_installer_arguments=( google-cloud-sdk ) ;;
+                groff )
+                    default_installer_arguments=( --ignore-dependencies groff ) ;;
+                op )
+                    default_installer_arguments=( --cask 1password-cli ) ;;
+                kubectl )
+                    default_installer_arguments=( kubernetes-cli ) ;;
+            esac
+            # TODO Where did you forget to quote?
+            install_missing="brew install ${(@)default_installer_arguments:q}"
+            install_outdated="brew upgrade ${(@)default_installer_arguments:q}"
+            install_uninstall="brew remove ${(@)default_installer_arguments:q}"
+            # `grep -q` doesn't work here.
+            # https://unix.stackexchange.com/questions/305547/broken-pipe-when-grepping-output-but-only-with-i-flag
+            read -r -d '' install_check_installed < <(dotctl_heredoc <<'            EOF'
+                ! { brew info ${default_installer_arguments:q} | grep '^Not installed' > /dev/null; }
+            EOF
+            )
+            # Note that if you have to install something with `curl | tar` you
+            # would put a second switch statement here to override the above.
+            ;;
+        linux )
+            install_check_installed <<'            EOF'
+                { dpkg -s ${program:q} 2>/dev/null | grep -q Status; }
+            EOF
+            install_missing="sudo apt-get install -y ${program:q}"
+            install_outdated="sudo apt-get upgrade -y ${program:q}"
+            ;;
+    esac
+
+    # Switched configuration for version checking for all platforms.
+
+    local check_text_processor="groff -Tascii"
+    local check_version
+    local check_groff=0
+    local check_path="$program"
+    local check_version_get="$program --version"
+    local check_rationale
+
+    case "$program" in
+        age | age-keygen )
+            check_version=1.0.0
+            read -r -d '' check_version_get < <(dotctl_heredoc <<'            EOF'
+                ${program} --version | sed 's/^v//'
+            EOF
+            )
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses the encryption utility \fBage\fR to create public-private
+                key pairs to securely store secrets in 1Password and in source code using
+                Mozilla SOPS.
+                .sp 1
+                .in 8
+                https://github.com/FiloSottile/age
+            EOF
+            )
+            ;;
+        flux )
+            check_version=0.28.4
+            read -r -d '' check_version_get <<'            EOF'
+                flux --version | sed 's/[^0-9]*//'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                Flux V2 is a continuous deployment system for Kubernetes.
+                \fBdotctl\fR uses the \fBflux\fR command line interface to
+                bootstrap Flux V2 deployments into a new Kubernetes cluster.
+                .sp 1
+                .in 8
+                https://fluxcd.io/docs/installation/
+            EOF
+            )
+            ;;
+        gcloud )
+            check_version=0.0.0
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses \fBgcloud\fR to manage Google Cloud
+                resources.
+                .sp 1
+                .in 8
+                https://cloud.google.com/sdk/gcloud
+            EOF
+            )
+            ;;
+        git )
+            check_version=2.24.3
+            read -r -d '' check_version_get <<'            EOF'
+                git --version | sed -E 's/[^0-9]+([0-9.]+).*/\1/'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses \fBgit\fR to update itself from the
+                \fBacretrader/acreops-dotctl\fR repository.
+                .sp 1
+                .in 8
+                https://git-scm.com/
+            EOF
+            )
+            ;;
+        groff )
+            check_path=$groff
+            check_version=1.22.4
+            read -r -d '' check_version_get <<'            EOF'
+                groff --version | sed 's/^[^0-9]*\([1-9].*\)$/\1/' | head -n 1
+            EOF
+            check_groff=1
+            ;;
+        gojq )
+            check_version=0.12.6
+            read -r -d '' check_version_get <<'            EOF'
+                gojq --version | sed -E 's/^gojq ([0-9.]+).*$/\1/'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR talks to a lot of APIs and therefore needs to parse and
+                serialize JSON. It works with Kubernetes manifests and therefore needs to
+                parse and serialize YAML. \fBdotctl\fR uses \fBgojq\fR, a Go implementation
+                of the JSON transformation language \fBjq\fR. \fBgojq\fR does most of what
+                \fBjq\fR does with JSON and is able to parse and serialize YAML as well.
+                .sp 1
+                .in 8
+                https://github.com/itchyny/gojq
+            EOF
+            )
+            ;;
+        jo )
+            check_version=1.6
+            read -r -d '' check_version_get <<'            EOF'
+                jo -v | sed 's/^jo //'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR talks to a lot of APIs and therefore needs generate JSON.
+                \fBzsh\fR is not very good at generating JSON itself, so
+                \fBdotctl\fR uses \fBjo\fR to generate JSON using shell syntax.
+                .sp 1
+                .in 8
+                https://github.com/jpmens/jo
+            EOF
+            )
+            ;;
+        op )
+            check_version=1.12.4
+            read -r -d '' check_version_get <<'            EOF'
+                op --version
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses the 1Password CLI \fBop\fR to read secrets from and write
+                secrets to 1Password.
+                .sp 1
+                .in 8
+                https://developer.1password.com/docs/cli
+            EOF
+            )
+            ;;
+        kubectl )
+            check_version=1.23.4
+            read -r -d '' check_version_get <<'            EOF'
+                kubectl version --client --output=yaml | awk '/gitVersion/ { print substr($2, 2) }'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses \fBkubectl\fR to administer Kubernetes clusters, obtain
+                Kubernetes credentials and deploy Kubernetes manifests.
+                .sp 1
+                .in 8
+                https://kubernetes.io/docs/tasks/tools/#kubectl
+            EOF
+            )
+            ;;
+        step )
+            check_version=0.18.2
+            read -r -d '' check_version_get <<'            EOF'
+                step --version | sed -n 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p;q'
+            EOF
+            read -r -d '' check_rationale < <(dotctl_heredoc <<'            EOF'
+                \fBdotctl\fR uses the Smallstep CLI \fBstep\fR to implement the client side
+                of single-sign on SSH.
+                .sp 1
+                .in 8
+                https://smallstep.com/docs/step-cli/installation
+            EOF
+            )
+            ;;
+    esac
+
+    dotctl_prompt_$operation
+}
+
+dotctl_check_installed() {
+    local package
+    while [[ $# -ne 0 ]]; do
+        program=${1:-}
+        shift
+        dotctl_configure_dependency install "$program"
+    done
+}
+
+install_linux_requirements() {
+    if ! whence groff > /dev/null; then
+        dotctl_string_resource string_install_groff
+        print ""
+        read -p "        Enter a value: " yn
+        print ""
+        if [[ "$yn" == yes ]]; then
+            sudo apt-get install -y groff
+        else
+            exit 1
+        fi
+    fi
+    if ! { locale -a 2>/dev/null | grep -i 'en_us\.utf-\?8' > /dev/null; }; then
+        if ! whence local-gen > /dev/null; then
+            dotctl_string_resource string_install_locales
+            echo ""
+            read -p "        Enter a value: " yn
+            echo ""
+            if [[ "$yn" == yes ]]; then
+                sudo apt-get install -y locales
+                sudo locale-gen 'en_US.UTF-8'
+            else
+                exit 1
+            fi
+        else
+            dotctl_string_resource string_generate_locale
+            print ""
+            read -p "        Enter a value: " yn
+            print ""
+            if [[ "$yn" == yes ]]; then
+                sudo locale-gen 'en_US.UTF-8'
+            else
+                exit 1
+            fi
+        fi
+    fi
+}
+
+install_osx_requirements() {
+    if ! whence brew > /dev/null; then
+        dotctl_string_resource string_install_brew | groff -T ascii | less -XE
+        print ""
+        read -p yn\?"        Enter a value: "
+        print ""
+        bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    local brew=$(whence brew)
+    groff="$(dirname "$brew")/groff"
+}
+
+# ___ usage_root ___
+# .TH ACRECTL 1 "Flat Head Mill Manuals" "powered by zsh" "Flat Head Mill Manuals"
+# .SH NAME
+# dotctl \- amaglamated utilities
+# .SH SYNOPSIS
+# .SY dotctl
+# .IR resource
+# .RI [ resource\.\.\.\& ]
+# .RI command
+# .RI [ options ]
+# .RI [ arguments ]
+# .SY dotctl
+# .IR resource
+# .RI [ resource\.\.\.\& ]
+# .RI command
+# .RI [ \-h | \-\-help ]
+# .SH DESCRIPTION
+# amalgamated utilities. A place to keep the things that I run all the time in
+# bits in pieces as whole programs.
+# ___
+
+main() {
+    declare -A dotctl_registers=( install_force 1 install_used_package_manager 1 )
+
+    declare -A ALPHABET
+    for name in \
+        alfa bravo charlie delta echo foxtrot golf hotel india juliett kilo \
+        lima mike november oscar papa quebec romeo sierra tango uniform \
+        victor whiskey x-ray yankee zulu
+    do
+        ALPHABET[$name[1]]=$name
+    done
+
+    local os groff=groff
+
+    case "$OSTYPE" in
+        linux-gnu )
+            # TODO Check that Linux is Ubuntu.
+            # TODO See if Debian doesn't Just Work.
+            # TODO Support Alpine.
+            os=ubuntu
+            install_linux_requirements
+            ;;
+        darwin* )
+            # TODO Check for `xcode-select --version` on OS X.
+            # TODO Check for `brew` on OS X.
+            os=osx
+            install_osx_requirements
+            ;;
+    esac
+
+    dotctl_check_installed groff
+
+    dotctl_parse_arguments root "h,help" -- "$@"
+    [[ $# -eq 0 ]] && dotctl_usage root
+    dotctl_next_command '' "$@"
+}
+
+main "$@"
