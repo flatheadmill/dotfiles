@@ -1,0 +1,12 @@
+--- zsh.vim	2022-03-30 15:12:27.000000000 -0500
++++ zsh.heredoc.vim	2022-04-03 13:00:12.000000000 -0500
+@@ -93,6 +93,9 @@
+                                 \ start=+<\@<!<<\s*\(["']\)\z(\S\+\)\1+
+                                 \ end='^\z1\>'
+ syn region  zshHereDoc          matchgroup=zshRedir
++                                \ start=+<\@<!<<\s*\(["']\)\z([^']\+\)\1+
++                                \ end='^\z1\>'
++syn region  zshHereDoc          matchgroup=zshRedir
+                                 \ start=+<\@<!<<-\s*\(["']\)\z(\S\+\)\1+
+                                 \ end='^\s*\z1\>'
+ 
