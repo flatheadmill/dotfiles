@@ -204,32 +204,32 @@ dotctl_parse_arguments_error() {
 # TODO Maybe the RM list should live in the scope of main.
 
 #
-declare -A ACRECTL_RM
-ACRETMP=
+declare -A DOTCTL_RM
+DOTTMP=
 
 dotctl_temporary_directory() {
-    [[ -n "$ACRETMP" ]] && return
-    ACRETMP="$(mktemp -d)"
-    ACRECTL_RM[$ACRETMP]=0
+    [[ -n "$DOTTMP" ]] && return
+    DOTTMP="$(mktemp -d)"
+    DOTCTL_RM[$DOTTMP]=0
 }
 
 dotctl_temporary() {
     local temporary=${1:-}
-    [[ "$temporary" == "$ACRETMP"* ]] || abend <<'    EOF'
-        error: Temporary file or directory $temporary not a child of $ACRETMP
+    [[ "$temporary" == "$DOTTMP"* ]] || abend <<'    EOF'
+        error: Temporary file or directory $temporary not a child of $DOTTMP
     EOF
-    while [[ $ACRECTL_RM[$temporary] != 0 ]]; do
-        ACRECTL_RM[$temporary]=0
+    while [[ $DOTCTL_RM[$temporary] != 0 ]]; do
+        DOTCTL_RM[$temporary]=0
         temporary=${temporary%/*}
     done
 }
 
 dotctl_cleanup() {
     local temporary exmaple
-    eval set -- ${(@O)${(@k)ACRECTL_RM}:q}
+    eval set -- ${(@O)${(@k)DOTCTL_RM}:q}
     if [[ $# -ne 0 ]]; then
         example="$(mktemp -d)"
-        [[ "${example%/*}" == "${ACRETMP%/*}" ]] || abend <<'        EOF'
+        [[ "${example%/*}" == "${DOTTMP%/*}" ]] || abend <<'        EOF'
             error: Temporary directories are now created in a different location.
         EOF
         rmdir "$example"
@@ -237,8 +237,8 @@ dotctl_cleanup() {
     while [[ $# -ne 0 ]]; do
         temporary=${1:-}
         shift
-        [[ "$temporary" = "$ACRETMP"* ]] || <<'        EOF'
-            error: Temporary file $temporary not a child of $ACRETMP
+        [[ "$temporary" = "$DOTTMP"* ]] || <<'        EOF'
+            error: Temporary file $temporary not a child of $DOTTMP
         EOF
         if [[ -e "$temporary" ]]; then
             if [[ -d "$temporary" ]]; then
@@ -251,6 +251,30 @@ dotctl_cleanup() {
 }
 
 trap dotctl_cleanup EXIT INT TERM
+
+dotctl_parse_arguments() {
+    local command=${1:-}
+    zsh_parse_arguments dotctl_parse_arguments_error "$@"
+    print -R "[[ \$o_help -eq 0 ]] && dotctl_usage ${command:q}"
+}
+
+# Create a list of valid commands based on the command function declarations.
+IFS=$'\n' read -d '' -r -A DOTCTL_COMMANDS < <( \
+    sed -n 's/^dotctl_command_\(.*\)() {$/\1/p' $0 \
+)
+
+dotctl_next_command() {
+    local prefix=$1 command=$2
+    shift 2
+    for func in "${DOTCTL_COMMANDS[@]}"; do
+        if [[ "$func" == "$prefix$command" ]]; then
+            "dotctl_command_$func" "$@"
+            break
+        fi
+    done
+}
+
+# String resources and heredocs.
 
 # TODO AWK is nice, but replace with a while loop.
 
@@ -268,41 +292,6 @@ trap dotctl_cleanup EXIT INT TERM
 dotctl_string_resource() {
     local name=${1:-}
     awk '/^# ___ '$name' ___/{flag=1;next}/^# ___/{flag=0}flag' "$ZSH_ARGZERO" | sed -E 's/^# ?//g'
-}
-
-dotctl_parse_arguments() {
-    local command=${1:-}
-    zsh_parse_arguments dotctl_parse_arguments_error "$@"
-    print -R "[[ \$o_help -eq 0 ]] && dotctl_usage ${command:q}"
-}
-
-# Extracts a string using `dotctl_string_resource` and runs it through `groff`
-# to create a man page when the user requests help.
-#
-# `usage` -- underbar delimited name of command.
-
-#
-dotctl_usage() {
-    local usage=${1:-} cols="$(tput cols)"
-    [[ $cols -gt 90 ]] && cols=$(($cols - 10))
-    $groff -rLL=${cols}n -rLT=${cols}n -Wall -mtty-char -Tutf8 -man -c <(dotctl_string_resource usage_$usage) | less
-    exit
-}
-
-# Create a list of valid commands based on the command function declarations.
-IFS=$'\n' read -d '' -r -A ACRECTL_COMMANDS < <( \
-    sed -n 's/^dotctl_command_\(.*\)() {$/\1/p' $0 \
-)
-
-dotctl_next_command() {
-    local prefix=$1 command=$2
-    shift 2
-    for func in "${ACRECTL_COMMANDS[@]}"; do
-        if [[ "$func" == "$prefix$command" ]]; then
-            "dotctl_command_$func" "$@"
-            break
-        fi
-    done
 }
 
 dotctl_heredoc() {
@@ -333,6 +322,19 @@ abend() {
 
 warn() {
     dotctl_heredoc < /dev/stdin 1>&2
+}
+
+# Extracts a string using `dotctl_string_resource` and runs it through `groff`
+# to create a man page when the user requests help.
+#
+# `usage` -- underbar delimited name of command.
+
+#
+dotctl_usage() {
+    local usage=${1:-} cols="$(tput cols)"
+    [[ $cols -gt 90 ]] && cols=$(($cols - 10))
+    $groff -rLL=${cols}n -rLT=${cols}n -Wall -mtty-char -Tutf8 -man -c <(dotctl_string_resource usage_$usage) | less
+    exit
 }
 
 # https://stackoverflow.com/a/4025065
@@ -482,11 +484,13 @@ dotctl_prompt() {
 
 dotctl_text_prompt() {
     local however=$(printf "$(dotctl_string_resource prompt_command)" $program $program $program)
+    print -R ""
     dotctl_string_resource rationale_$program
-    echo "$however" | tr $'\n' ' ' | fold -w 74 -s | sed 's/^/    /'
-    echo ""
-    echo "        ${(P)installer}"
-    echo ""
+    print -R "$however" | tr $'\n' ' ' | fold -w 74 -s | sed 's/^/    /'
+    print -R ""
+    print -R ""
+    print -R "        ${(P)installer}"
+    print -R ""
     if [[ ! -t 0 ]]; then
         printf "$(dotctl_string_resource prompt_install_no_tty)\n" $program
     elif [[ "$os" == osx ]]; then
@@ -612,10 +616,11 @@ dotctl_configure_dependency() {
             # Note that if you have to install something with `curl | tar` you
             # would put a second switch statement here to override the above.
             ;;
-        linux )
-            install_check_installed <<'            EOF'
+        ubuntu )
+            read -r -d '' install_check_installed < <(dotctl_heredoc <<'            EOF'
                 { dpkg -s ${program:q} 2>/dev/null | grep -q Status; }
             EOF
+            )
             install_missing="sudo apt-get install -y ${program:q}"
             install_outdated="sudo apt-get upgrade -y ${program:q}"
             ;;
@@ -783,23 +788,170 @@ dotctl_check_installed() {
     done
 }
 
+# Install base dependencies including `brew` on OS X, `groff`, and the `UTF-8`
+# locale on Linux.
+
+# ___ string_generate_locale ___
+#     `dotctl` has detected that the locale `en_US.UTF-8` does not exist on
+#     your system. `dotctl` and many of its dependencies are going to require a
+#     proper locale instead of the default `C` locale.
+#
+#         https://www.baeldung.com/linux/locale-environment-variables
+#
+#     You can generate the `en_US.UTF-8` locale with the following command.
+#
+#         sudo locale-gen en_US.UTF-8
+#
+#     If you have `sudo` privileges `dotctl` can generate the `en_US.UTF-8`
+#     locale for you now.
+#         Would you like `dotctl` to install generate the `en_US.UTF-8` locale?
+#
+#         Only 'yes' will be accepted to approve.
+# ___ string_install_locales ___
+#     `dotctl` has detected that the locale `en_US.UTF-8` does not exist on
+#     your system. `dotctl` and many of its dependencies are going to require a
+#     proper locale instead of the default `C` locale.
+#
+#         https://www.baeldung.com/linux/locale-environment-variables
+#
+#     You can generate the `en_US.UTF-8` locale with the following command.
+#
+#         sudo locale-gen en_US.UTF-8
+#
+#     However, the command `locale-gen` is not found in your search path. If you
+#     haven't installed `locale-gen` you can install it with the following
+#     command.
+#
+#         sudo apt-get install -y locales
+#
+#     If you have `sudo` privileges `dotctl` can run install `locale-gen` and
+#     generate the `en_US.UTF-8` locale for you now.
+#         Would you like `dotctl` to install `locale-gen` and generate the
+#         `en_US.UTF-8` locale?
+#
+#         Only 'yes' will be accepted to approve.
+# ___ string_install_less ___
+#     `dotctl` uses the pager `less` to display bold and italic highlighting of
+#     its user prompts and man page formatted help.
+#
+#         http://www.greenwoodsoftware.com/less/
+#
+#     However, the command `less` is not found in your search path. If you're
+#     certain you've installed `less`, please update your `PATH` environment
+#     variable and try gain. If you haven't installed `less` you can install it
+#     with the following command.
+#
+#         sudo apt-get install -y less
+#
+#     If you have `sudo` privileges `dotctl` can run this install for you now.
+#         Would you like `dotctl` to install `less`?
+#
+#         Only 'yes' will be accepted to approve.
+# ___ prompt_install_user ___
+#     We can run this installation for you now.
+#         Would you like `dotctl` to install `%s`?
+#
+#         Only 'yes' will be accepted to approve.
+# ___ rationale_groff ___
+#     `dotctl` uses the text formatting utility `groff` to format its help in
+#     man page format and to highlight and format the output of user prompts.
+#
+#         https://www.gnu.org/software/groff/
+#
+# ___ prompt_command ___
+# However, the command `%s` is not found in your search path. If you're
+# certain you've installed `%s`, please update your `PATH` environment
+# variable and try gain. If you haven't installed `%s` you can install it
+# with the following command.
+# ___ prompt_install_sudo ___
+#     If you have `sudo` privileges we can run this installatoin for you now.
+#         Would you like `dotctl` to install `%s`?
+#
+#         Only 'yes' will be accepted to approve.
+# ___ prompt_install_no_tty ___
+#     `dotctl` can run this install for you, but it will need to prompt you for
+#     your approval and the command you're running is reading from standard
+#     input so `dotctl` cannot ask you to enter yes or no.
+#
+#     You can run any command with a file substitution and it will be as secure
+#     piping from standard in. This will free standard in so you will able to
+#     use to answer yes or no at a prompt.
+#
+#         dotctl 1password add vault secret <(echo hello)
+#
+#     The example above is equivalent to the example below.
+#
+#         echo hello | dotctl 1password vault secret -
+#
+#     You can also install depednencies explictly by passing using the
+#     `dotctl dependencies install` command.
+#
+#         dotctl dependencies install %s
+#
+#     If there are still more dependencies you will see this message for the new
+#     dependency. We want to make sure you have a chance to review every
+#     dependency that is installed on your system.
+# ___ string_install_zsh ___
+# `dotctl` is written in `zsh` and not Bash or pure shell. `zsh` is a modern
+# shell that has enough language features to make programming in `zsh` as quick
+# and dirty as programming in Perl, Ruby or Python.
+#
+# Bash has all those same features in Bash 5 but OS X is stuck on Bash 3.2
+# because Apple doesn't want to deal with the GPL v3 license Bash has used since
+# 3.3. We could install Bash 5 on OS X using Homebrew but then there would be
+# two versions of Bash involed and we'd have to go find the right one and update
+# the shebang line. OS X does install the latest `zsh` so if we instead install
+# `zsh` on Linux we have the latest `zsh` on both OS X and Linux and both
+# installed by the operating system's package manager and in the search path.
+#
+# Note that the installer segement of `dotctl` is written in pure shell so that
+# we can run the installer using the default shell in Apline, Debian/Ubuntu or
+# OS X. No support for Fedora/CentOS at the moment.
+# ___ string_install_brew ___
+# .pl 1
+# .ll 80
+# .in 4
+# .sp 1
+# On OS X, \fBdotctl\fR uses the package manager Homebrew to install
+# dependencies as they are needed.
+# .sp 1
+# .in 8
+# https://stackoverflow.com/a/10750038
+# .sp 1
+# .in 4
+# However, the command \fRbrew\fR is not found in your path. If you're certain
+# you installed \fBbrew\fR, please update your \fBPATH\fR environment variable.
+# If you haven't installed \fBbrew\fR you can install it with the following
+# command.
+# .sp 1
+# .in 8
+# .ll 120
+# .nh
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# .hy
+# .ll 80
+# .sp 1
+# .in 4
+# If you install dependencies yourself using a different package manager or by
+# building from source, add \fBbrew=false\fR to your \fB~/.dotctl\fR file and
+# \fBdotctl\fR will prompt you with instructions when it needs you to install a
+# dependency.
+# .sp 1
+# If you do want to install \fBbrew\fR, \fBdotctl\fR can run the installation
+# for you now.
+# .sp 1
+# .in 4
+# Would you like \fBdotctl\fR to install \fBbrew\fR?
+# .in 8
+# Only 'yes' will be accepted to approve.
+# ___
+
 install_linux_requirements() {
-    if ! whence groff > /dev/null; then
-        dotctl_string_resource string_install_groff
-        print ""
-        read -p "        Enter a value: " yn
-        print ""
-        if [[ "$yn" == yes ]]; then
-            sudo apt-get install -y groff
-        else
-            exit 1
-        fi
-    fi
     if ! { locale -a 2>/dev/null | grep -i 'en_us\.utf-\?8' > /dev/null; }; then
         if ! whence local-gen > /dev/null; then
             dotctl_string_resource string_install_locales
             echo ""
-            read -p "        Enter a value: " yn
+            read -r yn\?"        Enter a value: " yn
             echo ""
             if [[ "$yn" == yes ]]; then
                 sudo apt-get install -y locales
@@ -810,7 +962,7 @@ install_linux_requirements() {
         else
             dotctl_string_resource string_generate_locale
             print ""
-            read -p "        Enter a value: " yn
+            read -r yn\?"        Enter a value: " yn
             print ""
             if [[ "$yn" == yes ]]; then
                 sudo locale-gen 'en_US.UTF-8'
@@ -834,7 +986,7 @@ install_osx_requirements() {
 }
 
 # ___ usage_root ___
-# .TH ACRECTL 1 "Flat Head Mill Manuals" "powered by zsh" "Flat Head Mill Manuals"
+# .TH DOTCTL 1 "Flat Head Mill Manuals" "zsh" "Flat Head Mill Manuals"
 # .SH NAME
 # dotctl \- amaglamated utilities
 # .SH SYNOPSIS
@@ -886,7 +1038,7 @@ main() {
 
     dotctl_check_installed groff
 
-    dotctl_parse_arguments root "h,help" -- "$@"
+    eval "$(dotctl_parse_arguments root "h,help" -- "$@")"
     [[ $# -eq 0 ]] && dotctl_usage root
     dotctl_next_command '' "$@"
 }
