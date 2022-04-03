@@ -4,3 +4,4 @@
 
 *.go whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
 go.mod whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
+Makefile whitespace=indent-with-non-tab,trailing-space,cr-at-eol,tabwidth=4
