@@ -1,5 +1,14 @@
 source $DOTFILES/etc/ohmy.zsh
 
+# Undo the `vi-mode` clipboard interception.
+
+while read -r f; do
+    print -R $f
+    [[ "$f" =~ ^_zsh-vi-(copy|paste)-(.*)$ ]] || { echo bummer && continue }
+    unfunction "$f"
+    eval "function $f() { zle .$match[2] }"
+done < <(print -l ${(ok)functions} | grep -E '_zsh-vi-(copy|paste)')
+
 for file in "$DOTFILES/etc/zprofile.d/"*; do
   . "$file"
 done
