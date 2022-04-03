@@ -3,7 +3,6 @@ source $DOTFILES/etc/ohmy.zsh
 # Undo the `vi-mode` clipboard interception.
 
 while read -r f; do
-    print -R $f
     [[ "$f" =~ ^_zsh-vi-(copy|paste)-(.*)$ ]] || { echo bummer && continue }
     unfunction "$f"
     eval "function $f() { zle .$match[2] }"
