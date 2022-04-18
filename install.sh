@@ -4,6 +4,10 @@
 #   sudo sh -c "$(wget -qO - https://flatheadmill.github.io/install.sh)"
 # and that would redirect to the right place.
 #
+# No that's too much typing...
+#
+#   curl https://dotctl.sh | sudo sh
+#
 # It would detect the platform and distribution and then install all the basic
 # dependencies and any missing locales.
 #
