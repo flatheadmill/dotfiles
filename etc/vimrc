@@ -57,6 +57,8 @@ au BufRead,BufNewFile *.markdown,*.md set com=
 " newer stuff
 call plug#begin('~/.vim/plugged')
 
+Plug 'cappyzawa/starlark.vim'
+Plug 'vmware-tanzu/ytt.vim'
 Plug 'junegunn/seoul256.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'junegunn/goyo.vim'
