@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+if whence osascript > /dev/null; then
+    osascript -e 'display notification "Done." with title "Command Line" sound name "Submarine"'
+else
+    sleep 0.5; echo -ne '\007'; sleep 0.5; echo -ne '\007'; sleep 0.5; echo -ne '\007';
+fi
