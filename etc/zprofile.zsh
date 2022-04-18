@@ -15,3 +15,7 @@ fi
 if [[ -e "$HOME/.cargo/env" ]]; then
     source "$HOME/.cargo/env"
 fi
+
+if whence kapp > /dev/null; then
+    source <(kapp completion zsh | sed '/Succeeded/d')
+fi
