@@ -16,6 +16,10 @@
 # to go nuts and generate a script that will set local variables or emit error
 # messages if the argument parse fails.
 
+# NB: We prepend `o_` because it looks reasonable and it can be annoying to have
+# an array named `user` that is full of users where `user` is a better name for
+# an iterator variable, and we don't want to add `users=u,user:@`, or do we?
+
 #
 zsh_parse_arguments() {
     local error=${${1:-}:q} context=${${2:-}:q}
@@ -23,20 +27,30 @@ zsh_parse_arguments() {
 
     declare -A argument_properties
 
-    local regex short long kind variable default
+    local regex short long kind variable default pattern prefix=o_
 
     while :
     do
         case "$1" in
-            --)
+            -p | --prefix )
+                prefix="$2"
+                shift 2
+                continue
+                ;;
+            -- )
                 shift
                 break
                 ;;
-            *)
+            * )
+                variable=${1%=*}
+                [[ "$variable" = "$1" ]] && variable=
+                pattern=${1#*=}
                 regex='^([a-zA-Z0-9]?),([^@:#]*)([@:#]?)(=.*)?$'
-                [[ "$1" =~ $regex ]] || { print -R "error definition ${1:q}"; return; }
-                short=${match[1]} long=${match[2]} kind=${match[3]} variable= default="${match[4]}"
-                [[ -z "$long" ]] && variable=o_$short || variable=o_$long
+                [[ "$pattern" =~ $regex ]] || { print -R "error definition ${1:q}"; return; }
+                short=${match[1]} long=${match[2]} kind=${match[3]} default="${match[4]}"
+                if [[ -z "$variable" ]]; then
+                    [[ -z "$long" ]] && variable=$prefix$short || variable=$prefix${long//-/_}
+                fi
                 if [[ "$default" != '' ]]; then
                     case x"$kind" in
                         x )
@@ -87,10 +101,10 @@ zsh_parse_arguments() {
                     esac
                 fi
                 if [[ -n "$long" ]]; then
-                    argument_properties["--${long}"]="kind=$kind variable=$variable"
+                    argument_properties[--${long}]="kind=$kind variable=$variable"
                 fi
                 if [[ -n "$short" ]]; then
-                    argument_properties["-${short}"]="kind=$kind variable=$variable"
+                    argument_properties[-${short}]="kind=$kind variable=$variable"
                 fi
                 shift
                 ;;
@@ -102,13 +116,16 @@ zsh_parse_arguments() {
     while [[ $i -le ${#args[@]} ]]
     do
         case "${args[$i]}" in
+            - )
+                break
+                ;;
             -- )
                 let i=i+1
                 break
                 ;;
             --* )
                 arged=1
-                regex='^(--[a-zA-Z0-9]*)(=.*)?$'
+                regex='^(--[-a-zA-Z0-9]*)(=.*)?$'
                 [[ "${args[$i]}" =~ $regex ]] || { print -R "$error $context unknown ${1:q}"; return; }
                 long="${match[1]}"
                 if [[ "$match[2]" != '' ]]; then
@@ -118,8 +135,8 @@ zsh_parse_arguments() {
                     let i=i+1
                 fi
                 flag=$long
-                [[ -z "${argument_properties["$long"]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
-                eval "${argument_properties["$long"]}"
+                [[ -z "${argument_properties[$long]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
+                eval "${argument_properties[$long]}"
                 if [[ $kind == toggle && "$long" =~ no- ]]; then
                     print -R "$variable=0"
                 fi
@@ -128,14 +145,14 @@ zsh_parse_arguments() {
                 short="${args[$i]}"
                 short="${short:0:2}"
                 flag=$short
-                [[ -z "${argument_properties["$short"]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
-                eval "${argument_properties["$short"]}"
+                [[ -z "${argument_properties[$short]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
+                eval "${argument_properties[$short]}"
                 case "$kind" in
                     array | value )
-                        if [[ ${#short} -eq 2 ]]; then
+                        if [[ ${#${args[$i]}} -eq 2 ]]; then
                             let i=i+1
                         else
-                            args[i]=${short:2}
+                            args[i]=${${args[$i]}:2}
                         fi
                         ;;
                     * )
@@ -269,9 +286,12 @@ dotctl_next_command() {
     for func in "${DOTCTL_COMMANDS[@]}"; do
         if [[ "$func" == "$prefix$command" ]]; then
             "dotctl_command_$func" "$@"
-            break
+            return
         fi
     done
+    abend <<'    EOF'
+        error: unknown command ${prefix/_/ }$command
+    EOF
 }
 
 # String resources and heredocs.
@@ -786,6 +806,111 @@ dotctl_check_installed() {
         shift
         dotctl_configure_dependency install "$program"
     done
+}
+
+dotctl_command_cidr() {
+    eval "$(dotctl_parse_arguments cidr "h,help" -- "$@")"
+    [[ $# -eq 0 ]] && acrectl_usage gce_key
+
+    inet_aton() {
+        declare -a parts=( "${(Oa@s/./)1}" )
+        local num=0 e=0 
+        for quad in "${parts[@]}"; do
+            num=$(( num + ( quad * ( 256 ** e ) ) ))
+            let e++
+        done
+        print -R $num
+    }
+
+    inet_ntoa() {
+        declare -a parts
+        num=${1:-}
+        for e in 3 2 1; do
+            parts+=( $(( num / 256 ** e )) )
+            num=$(( num % 256 ** e ))
+        done
+        parts+=( $num )
+        print -R ${(j:.:)parts}
+    }
+
+    dotctl_next_command cidr_ "$@"
+}
+
+dotctl_command_cidr_divvy() {
+    eval "$(dotctl_parse_arguments cidr_divvy -- "$@")"
+    local cidr=${1:-} address bits
+    shift
+
+    # https://zsh.sourceforge.io/Doc/Release/Arithmetic-Evaluation.html
+    address=${cidr%/*}
+    bits=${cidr#*/}
+
+    blocks=${1:-}
+    shift
+
+    let start=$(inet_aton $address)
+    let stop=$(inet_aton $(dotctl_command_cidr_inc $cidr $blocks))
+
+    let parent=$(( stop - start ))
+
+    declare -a counts
+    while (( $# != 0 )); do
+        counts+=($(( parent / ( 1 << (32 - $1) ) )))
+        parent=$(( 1 << (32 - $1) ))
+        shift
+    done
+
+    counts+=($parent)
+
+    print $cidr $(inet_ntoa $stop)/$bits "${counts[@]}"
+}
+
+dotctl_command_cidr_inc() {
+    eval "$(dotctl_parse_arguments cidr_divvy -- "$@")"
+    local cidr=${1:-} address bits
+    shift
+    bits=${cidr#*/}
+    address=${cidr%/*}
+    local count=${1:-1}
+    local int=$(inet_aton $address)
+    while (( count != 0 )); do
+        int=$(( int + (1 << (32 - bits)) ))
+        let count--
+    done
+    print "$(inet_ntoa $int)/$bits"
+}
+
+dotctl_command_args_unprefixed() {
+    dotctl_parse_arguments args_hyphenated -p '' n,named: -- "$@"
+}
+
+dotctl_command_args_named() {
+    dotctl_parse_arguments args_hyphenated name=n,named: -- "$@"
+}
+
+dotctl_command_args_hyphenated() {
+    dotctl_parse_arguments args_hyphenated k,well-known-hosts: -- "$@"
+}
+
+dotctl_command_args_test() {
+    eval "$(dotctl_parse_arguments args_test -- "$@")"
+    echo ---
+    dotctl args hyphenated --well-known-hosts fred
+    echo ---
+    dotctl args hyphenated --well-known-hosts=barney
+    echo ---
+    dotctl args hyphenated -k wilma
+    echo ---
+    dotctl args hyphenated -kbetty
+    echo ---
+    dotctl args named --named=fred -nbarney
+    echo ---
+    dotctl args unprefixed --named=fred -nbarney
+}
+
+dotctl_command_args() {
+    eval "$(dotctl_parse_arguments args -- "$@")"
+    dotctl_next_command args_ "$@"
 }
 
 # Install base dependencies including `brew` on OS X, `groff`, and the `UTF-8`
