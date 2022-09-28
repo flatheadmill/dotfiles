@@ -1,5 +1,10 @@
-if [[ $OSTYPE == darwin* && -e "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc" ]]; then
-    source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+if [[ $OSTYPE = darwin* ]]; then
+    if [[ $(uname -m) = arm64 && -e /opt/homebrew/bin ]]; then
+        export PATH=/opt/homebrew/bin:$PATH
+    fi
+    if [[ -e "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc" ]]; then
+        source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+    fi
 fi
 
 if [[ -e "$HOME/.nvm" ]]; then
