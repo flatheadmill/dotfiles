@@ -1,6 +1,15 @@
-source $DOTFILES/etc/ohmy.zsh
-
 # Undo the `vi-mode` clipboard interception.
+aws_zsh_completer=$(which aws_zsh_completer.sh)
+if [[ $? -eq 0 ]]; then
+    source $aws_zsh_completer
+fi
+
+if type brew &>/dev/null
+then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
+
+source $DOTFILES/etc/ohmy.zsh
 
 while read -r f; do
     [[ "$f" =~ ^_zsh-vi-(copy|paste)-(.*)$ ]] || { echo bummer && continue }
@@ -34,3 +43,16 @@ fi
 function preexec {
     refresh
 }
+
+my_precmd() {
+  vcs_info
+  psvar[1]=$vcs_info_msg_0_
+  if [[ -n ${psvar[1]} ]]; then
+    psvar[1]=" (${psvar[1]})"
+  fi
+}
+
+export HISTSIZE=1000000000
+export HISTFILESIZE=1000000000
+
+setopt INC_APPEND_HISTORY
