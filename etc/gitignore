@@ -7,3 +7,5 @@
 .tmux.run.sh
 npm-debug.log
 .not-out-of-date
+/.venv
+/__pycache__
