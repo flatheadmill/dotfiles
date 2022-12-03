@@ -6,6 +6,7 @@ export EDITOR=vim               # Set the default editor.
 export HISTSIZE=1000           # As much history in memory as possible.
 export SAVEHIST=10000           # As much history saved to disk as is possible.
 export HISTFILESIZE=10000
+export HISTFILE=~/.zsh_history
 
 # +-----------------+
 # | History Options |
@@ -62,6 +63,8 @@ autoload -U compinit; compinit
 # Outgoing?
 autoload -Uz fu
 
+MNML_PROMPT=(mnml_pyenv mnml_status mnml_keymap)
+MNML_RPROMPT=('mnml_cwd 2 0' mnml_git mnml_ssh)
 source $HOME/.dotfiles/vendor/minimal.zsh
 
 # +---------------------+
@@ -98,8 +101,8 @@ my_precmd() {
 }
 
 
-bindkey '^R' history-incremental-pattern-search-backward 
 bindkey -v
+bindkey '^R' history-incremental-pattern-search-backward 
 
 mnml_ssh() {
     if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
