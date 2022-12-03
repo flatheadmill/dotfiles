@@ -50,3 +50,5 @@ export HISTSIZE=1000000000
 export HISTFILESIZE=1000000000
 #
 #setopt INC_APPEND_HISTORY
+
+bindkey '^R' history-incremental-pattern-search-backward 
