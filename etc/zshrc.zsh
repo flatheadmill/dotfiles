@@ -52,3 +52,17 @@ export HISTFILESIZE=1000000000
 #setopt INC_APPEND_HISTORY
 
 bindkey '^R' history-incremental-pattern-search-backward 
+
+mnml_ssh() {
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+        local hostname=$(hostname -f)
+        typeset -a parts=( "${(a@s/./)hostname}" )
+        if (( ${#parts[@]} == 7 )); then
+            printf '%b' "${parts[1][1]}.${parts[2]}.${parts[6]}.${parts[7]}"
+        else
+            printf '%b' "${parts[1]}"
+        fi
+    fi
+}
+
+export EDITOR=vim
