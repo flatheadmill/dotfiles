@@ -1,4 +1,6 @@
-# Undo the `vi-mode` clipboard interception.
+## Completions.
+
+# TODO Why is this one special?
 aws_zsh_completer=$(which aws_zsh_completer.sh)
 if [[ $? -eq 0 ]]; then
     source $aws_zsh_completer
@@ -6,25 +8,17 @@ fi
 
 if type brew &>/dev/null
 then
-  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+    fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
 fi
 
-source $DOTFILES/etc/ohmy.zsh
-
-while read -r f; do
-    [[ "$f" =~ ^_zsh-vi-(copy|paste)-(.*)$ ]] || { echo bummer && continue }
-    unfunction "$f"
-    eval "function $f() { zle .$match[2] }"
-done < <(print -l ${(ok)functions} | grep -E '_zsh-vi-(copy|paste)')
-
-for file in "$DOTFILES/etc/zprofile.d/"*; do
-  . "$file"
-done
-
-unsetopt autopushd
-
 fpath=( ~/.dotfiles/share/zsh/functions "${fpath[@]}" )
+if [[ -d ~/.usr/share/zsh/functions ]]; then
+    fpath=( ~/.usr/share/zsh/functions "${fpath[@]}" )
+fi
+
 autoload -Uz fu
+
+source $HOME/.dotfiles/vendor/minimal.zsh
 
 # Reset the `SSH_AUTH_SOCK` before each command. Could also symlink it on
 # startup, but this works too.
@@ -54,5 +48,5 @@ my_precmd() {
 
 export HISTSIZE=1000000000
 export HISTFILESIZE=1000000000
-
-setopt INC_APPEND_HISTORY
+#
+#setopt INC_APPEND_HISTORY

@@ -13,15 +13,15 @@
 # a sandwich, if not, move it to an outgoing home directly. Let the user know
 # that a file was to be overwitten so we moved it out of the way.
 
-function abend () {
-  echo "fatal: $1" 1>&2
-  exit 1
+abend () {
+  printf "fatal: %s\n" "$1" 2>&1 && exit 1
 }
 
 git_version=$(git --version 2>/dev/null)
 if [ $? -ne 0 ]; then
   abend "git is not installed"
 fi
+
 git_version="${git_version#git version }"
 if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "$git_version" == 1.7.1[0-9].* ]]; }; then
   abend "git is at version $git_version but must be at least 1.7.10"
@@ -78,16 +78,12 @@ fi
 
 umask 022
 
-if ! [ -e "$HOME/.oh-my-zsh" ]; then
-  curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
-fi
-
-if ! [[ -e "$HOME/.vim/autoload/plug.vim" ]]; then
-    curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+if [[ ! -e "$HOME/.vim/autoload/plug.vim" ]]; then
+    curl -sfLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
 
-if ! [ -e "$HOME/.dotfiles" ]; then
+if [[ ! -e "$HOME/.dotfiles" ]]; then
   git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
 fi
 
@@ -116,24 +112,27 @@ create_rc .tmux.conf tmux.conf
 create_rc .gitconfig gitconfig
 create_rc .vimrc vimrc
 
+mkdir -p ~/.dotfiles/vendor
+
+if [[ ! -e ~/.dotfiles/vendor/minimal.zsh ]]; then
+    curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
+fi
+
 mkdir -p ~/.usr/bin ~/.usr/tmp
 touch ~/.usr/tmp/tmux.run.log
 
-# Tired of wrestling with Unicode.
-cd ~/.oh-my-zsh && patch -p 1 < ~/.dotfiles/share/terminalparty.patch
+if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
+    cat <<'    EOF' | sed 's/^    //'
+    Existing configuration files where replaced. The replaced files have been
+    moved to:
 
-if [ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]; then
-cat <<EOF
-Existing configuration files where replaced. The replaced files have been
-moved to:
+      ~/.dotfiles/replaced/$stamp
 
-  ~/.dotfiles/replaced/$stamp
+    Fish out anything you want to keep and move it to the file with the same name in
+    the directory:
 
-Fish out anything you want to keep and move it to the file with the same name in
-the directory:
+      ~/.dotfiles/rc
 
-  ~/.dotfiles/rc
-
-This is where your machine specific settings should be kept.
-EOF
+    This is where your machine specific settings should be kept.
+    EOF
 fi
