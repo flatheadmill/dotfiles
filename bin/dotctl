@@ -42,9 +42,13 @@ zsh_parse_arguments() {
                 break
                 ;;
             * )
-                variable=${1%=*}
-                [[ "$variable" = "$1" ]] && variable=
-                pattern=${1#*=}
+                if [[ "$1" =~ '^([^,]+)=(.*)$' ]]; then
+                    variable="$match[1]"
+                    pattern="$match[2]"
+                else
+                    variable=
+                    pattern="$1"
+                fi
                 regex='^([a-zA-Z0-9]?),([^@:#]*)([@:#]?)(=.*)?$'
                 [[ "$pattern" =~ $regex ]] || { print -R "error definition ${1:q}"; return; }
                 short=${match[1]} long=${match[2]} kind=${match[3]} default="${match[4]}"
