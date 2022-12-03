@@ -99,6 +99,7 @@ my_precmd() {
 
 
 bindkey '^R' history-incremental-pattern-search-backward 
+bindkey -v
 
 mnml_ssh() {
     if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
