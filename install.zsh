@@ -27,7 +27,22 @@ if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "
   abend "git is at version $git_version but must be at least 1.7.10"
 fi
 
-if [ $(basename $SHELL) != "zsh" ]; then
+# TODO Convert to `zsh -c "$(curl https://zsh.prettybots.com)"`
+#       With this you can know that zsh is installed and the zsh that the user
+#       wants to use. You can change shell with...
+case "$(sudo -n echo 1 2>&1)" in
+    1 )
+        printf 'Changing your shell to Zsh.'
+        ;;
+    *assword* )
+        printf 'We are going to use `sudo chsh` to change your shell, but we need your password to do so.\n'
+        ;;
+    * )
+        abend 'You can only use these dotfiles with Zsh. Please change your shell.'
+        ;;
+esac
+
+if [[ $(basename $SHELL) != "zsh" ]]; then
   if [[ "$1" = "sudo" ]]; then
     sudo chsh -s $(which zsh) $USER
   else
