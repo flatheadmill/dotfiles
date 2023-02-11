@@ -13,6 +13,7 @@ let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
 " put search results in the middle of the screen
+" https://vim.fandom.com/wiki/Make_search_results_appear_in_the_middle_of_the_screen
 :nnoremap n nzz
 :nnoremap N Nzz
 :nnoremap * *zz
