@@ -12,6 +12,14 @@ set visualbell          " don't disturb the neighbors
 let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
+" put search results in the middle of the screen
+:nnoremap n nzz
+:nnoremap N Nzz
+:nnoremap * *zz
+:nnoremap # #zz
+:nnoremap g* g*zz
+:nnoremap g# g#zz
+
 " TODO Learn how to set settings by file type.
 
 " <!--+
