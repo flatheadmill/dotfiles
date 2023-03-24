@@ -66,7 +66,7 @@ fi
 # If we have a key for `github.com` already, do nothing.
 if [[ $(ssh-keygen -F github.com | wc -c) -eq 0 ]]; then
     # Get the public key from the `github.com` server.
-    key=$(ssh-keyscan -t rsa github.com 2> /dev/null | cut -f3 -d' ')
+    key=$(ssh-keyscan -t ed25519 github.com 2> /dev/null | cut -f3 -d' ')
 
     # Create a comma delimited list of host ip addresses and the domain.
     hosts=$(echo $(dig -t a +short github.com  | tr '\n' ',')github.com)
@@ -75,14 +75,14 @@ if [[ $(ssh-keygen -F github.com | wc -c) -eq 0 ]]; then
     # file so we can use `ssh-keygen -f` to check the fingerprint.
     tmp=$(mktemp -d)
     trap "rm -rf $tmp" EXIT
-    echo "$hosts ssh-rsa $key" >> "$tmp/known_hosts"
+    echo "$hosts ssh-ed25519 $key" >> "$tmp/known_hosts"
 
     # Get that fingerprint.
-    fp=$(ssh-keygen -t rsa -q -l -f "$tmp/known_hosts" -F github.com | cut -f3 -d' ')
+    fp=$(ssh-keygen -t ed25519 -q -l -f "$tmp/known_hosts" -F github.com | cut -f3 -d' ')
 
-    if [[ $fp = "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8" ]]; then
+    if [[ $fp = "SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU" ]]; then
     # If the fingerprint is good, write the same line to our known hosts file.
-        echo "$hosts ssh-rsa $key" >> ~/.ssh/known_hosts
+        echo "$hosts ssh-ed25519 $key" >> ~/.ssh/known_hosts
     else
     # If the fingerprint is bad, panic.
         echo 'Bad GitHub SSH fingerprint!' 1>&2
