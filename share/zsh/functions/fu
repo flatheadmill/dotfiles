@@ -1,31 +1,34 @@
-echo Initializing
+#!/usr/bin/env zsh
 
-function fu () {
-case "$1" in
-    add)
-        shift 
-        name=$1 
-        shift
-        command=`head -n 1 | sed 's/ *[0-9][0-9]* *//'`
-        echo "$name $command" >> ~/.dotfiles/fu
-        ;;
-    list)
-        shift 
-        cat ~/.dotfiles/fu
-        ;;
-    *)
-        name=$1 
-        shift
-        while read -r line; do
-            label=${line%% *}
-            expression=${line#* }
-            if [ "$label" = "$name" ]; then
-                print -S $expression
-                break
-            fi
-        done < ~/.dotfiles/fu
-        ;;
-esac
+function errf {
+    printf "$@"
+    print --
 }
 
-fu "$@"
+# https://unix.stackexchange.com/questions/706897/exporting-zsh-history-separated-by-0-characters-instead-of-n
+
+function {
+    (( $# )) || { errf 'save, list or fu name'; return 1 }
+    case "$1" in
+        save )
+            shift 
+            name=$1 
+            shift
+            typeset key=$(fc -l | cut -d' ' -f 1 | tail -n 1)
+            print "$key"
+            print -- "--- saved as ~/.dotfiles/fu/$name ---"
+            print -R "${history[$key]}" | tee ~/.dotfiles/fu/"$name"
+            return 1
+            ;;
+        list )
+            shift 
+            ls ~/.dotfiles/fu
+            ;;
+        * )
+            name=$1 
+            shift
+            [[ -f ~/.dotfiles/fu/"$name" ]] || { errf 'not defined: %s' "$name"; return 1 }
+            print -RS "$(<~/.dotfiles/fu/"$name")"
+            ;;
+    esac
+} "$@"
