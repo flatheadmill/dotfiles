@@ -1,0 +1,1 @@
+(){ git merge --no-ff $1 -m "$(git rev-parse --abbrev-ref HEAD) <- $1" } topic/fu-1681627918 

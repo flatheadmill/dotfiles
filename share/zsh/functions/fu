@@ -16,8 +16,9 @@ function {
             shift
             typeset key=$(fc -l | cut -d' ' -f 1 | tail -n 1)
             print "$key"
-            print -- "--- saved as ~/.dotfiles/fu/$name ---"
-            print -R "${history[$key]}" | tee ~/.dotfiles/fu/"$name"
+            [[ "$name" =~ [./] ]] || name=~/.dotfiles/fu/"$name"
+            print -- "--- saved as $name ---"
+            print -R "${history[$key]}" | tee "$name"
             return 1
             ;;
         list )
@@ -27,8 +28,9 @@ function {
         * )
             name=$1 
             shift
-            [[ -f ~/.dotfiles/fu/"$name" ]] || { errf 'not defined: %s' "$name"; return 1 }
-            print -RS "$(<~/.dotfiles/fu/"$name")"
+            [[ "$name" =~ [./] ]] || name=~/.dotfiles/fu/"$name"
+            [[ -f "$name" ]] || { errf 'not defined: %s' "$name"; return 2 }
+            print -RS "$(<"$name")"
             ;;
     esac
 } "$@"
