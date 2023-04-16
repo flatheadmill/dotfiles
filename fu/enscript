@@ -1,0 +1,1 @@
+(){ enscript -f Courier6 -rG -2 "$1" -o "$1".ps } install.sh
