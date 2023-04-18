@@ -21,186 +21,216 @@
 # an iterator variable, and we don't want to add `users=u,user:@`, or do we?
 
 #
-zsh_parse_arguments() {
-    local error=${${1:-}:q} context=${${2:-}:q}
+function zsh_parse_arguments {
+    typeset error=${${1:-}:q} context=${${2:-}:q}
     shift 2
 
-    declare -A argument_properties
+    # TODO -hfoo will become $o_help and then set -- foo
+    typeset -A arguments declared localized arg
+    {
+        typeset regex short long remainder
 
-    local regex short long kind variable default pattern prefix=o_
+        while :
+        do
+            case "$1" in
+                # Indicates send of parser arguments.
+                -- )
+                    shift
+                    break
+                    ;;
+                # Parse program arguments.
+                * )
+                    # Check for a variable name or else we'll generate an `o_` prefixed one.
+                    if [[ "$1" =~ ^([^,]+)=(.*)$ ]]; then
+                        arg[variable]="$match[1]"
+                        pattern="$match[2]"
+                    else
+                        arg[variable]=
+                        pattern="$1"
+                    fi
 
-    while :
-    do
-        case "$1" in
-            -p | --prefix )
-                prefix="$2"
-                shift 2
-                continue
-                ;;
-            -- )
-                shift
-                break
-                ;;
-            * )
-                if [[ "$1" =~ '^([^,]+)=(.*)$' ]]; then
-                    variable="$match[1]"
-                    pattern="$match[2]"
-                else
-                    variable=
-                    pattern="$1"
-                fi
-                regex='^([a-zA-Z0-9]?),([^@:#]*)([@:#]?)(=.*)?$'
-                [[ "$pattern" =~ $regex ]] || { print -R "error definition ${1:q}"; return; }
-                short=${match[1]} long=${match[2]} kind=${match[3]} default="${match[4]}"
-                if [[ -z "$variable" ]]; then
-                    [[ -z "$long" ]] && variable=$prefix$short || variable=$prefix${long//-/_}
-                fi
-                if [[ "$default" != '' ]]; then
-                    case x"$kind" in
-                        x )
-                            kind=flag
-                            [[ "${default:1}" =~ ^[0-1]$ ]] || { print -R "$error $context boolean ${1:q}" && return; }
-                            print -R "local $variable=${default:1}"
-                            ;;
-                        x\! )
-                            kind=toggle
-                            [[ "${default:1}" =~ ^[0-1]$ ]] || { print -R "$error $context boolean ${1:q})" && return; }
-                            print -R "local $variable=${default:1}"
-                            ;;
-                        x\# )
-                            kind=count
-                            [[ "${default:1}" =~ ^-?[0-9]+$ ]] || { print -R "$error $context integer ${1:q}" && return; }
-                            print -R "local $variable=${default:1}"
-                            ;;
-                        x: )
-                            kind=value
-                            print -R "declare -a $variable=( ${default:1:q} )"
-                            ;;
+                    shift
+
+                    regex='^([a-zA-Z0-9]{0,2}),([^%@:#!]*)([%@:#!]?)(.*)$'
+                    [[ "$pattern" =~ $regex ]] || { printf '%s definition %q' $error "$1"; return; }
+                    short=${match[1]} long=${match[2]} arg[kind]=${match[3]} arg[remainder]="${match[4]}"
+
+                    [[ -z "$arg[variable]" ]] && {
+                        [[ -z "$long" ]] && arg[variable]=o_$short || arg[variable]=o_${long:gs/-/_/}
+                    }
+
+                    case "x$arg[kind]" in
                         x@ )
-                            { print -R "$error $context no_defaults ${1:q}" && return; }
+                            arg[type_flag]=' -a'
+                            arg[type_name]='array-local'
+                            ;;
+                        x% )
+                            arg[type_flag]=' -A'
+                            arg[type_name]='association-local'
+                            [[ -z "$arg[remainder]" ]] && arg[remainder]==
+                            ;;
+                        * )
+                            arg[type_flag]=' '
+                            arg[type_name]='scalar-local'
                             ;;
                     esac
-                else
-                    case x"$kind" in
-                        x )
-                            kind=flag
-                            print -R "local $variable=1"
-                            ;;
-                        x\! )
-                            kind=toggle
-                            print -R "local $variable=0"
-                            ;;
-                        x\# )
-                            kind=count
-                            print -R "local $variable=0"
-                            ;;
-                        x: )
-                            kind=value
-                            print -R "declare -a $variable"
-                            ;;
-                        x@ )
-                            kind=array
-                            print -R "declare -a $variable"
+
+                    [[ -n "$long" ]] && arguments[--${long}]="${(@qq)${(@kv)arg}}"
+                    [[ -n "$short" ]] && arguments[-${short}]="${(@qq)${(@kv)arg}}"
+
+                    [[ "declared[$arg[variable]]" = 1 ]] && continue
+                    case x"$arg[kind]" in
+                        x | x\! | x\# )
+                            printf '{ [[ ! -v %s ]] || [[ "${(t)%s}" != "scalar-local" ]] } && local %s\n' \
+                                "$arg[variable]" "$arg[variable]" "$arg[variable]"
+                            case "x$arg[kind]" in
+                                x | x\# )
+                                    printf '%s=0\n' "$arg[variable]"
+                                    ;;
+                                * )
+                                    printf '%s=1\n' "$arg[variable]"
+                                    ;;
+                            esac
                             ;;
                     esac
-                fi
-                if [[ -n "$long" ]]; then
-                    argument_properties[--${long}]="kind=$kind variable=$variable"
-                fi
-                if [[ -n "$short" ]]; then
-                    argument_properties[-${short}]="kind=$kind variable=$variable"
-                fi
-                shift
-                ;;
-        esac
-    done
+                    declared[$arg[variable]]=1
+                    ;;
+            esac
+        done
 
-    declare -a args=( "$@" )
-    local i=1 arged flag
-    while [[ $i -le ${#args[@]} ]]
-    do
-        case "${args[$i]}" in
-            - )
-                break
-                ;;
-            -- )
-                let i=i+1
-                break
-                ;;
-            --* )
-                arged=1
-                regex='^(--[-a-zA-Z0-9]*)(=.*)?$'
-                [[ "${args[$i]}" =~ $regex ]] || { print -R "$error $context unknown ${1:q}"; return; }
-                long="${match[1]}"
-                if [[ "$match[2]" != '' ]]; then
-                    arged=0
-                    args[i]=${match[2]:1}
-                else
+        typeset -a args=( "$@" ) split
+        typeset i=1 arged flag negated delimiter continued=''
+        while (( i <= ${#args[@]} )); do
+            negated=0
+            case "${args[$i]}" in
+                - )
+                    break
+                    ;;
+                -- )
                     let i=i+1
-                fi
-                flag=$long
-                [[ -z "${argument_properties[$long]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
-                eval "${argument_properties[$long]}"
-                if [[ $kind == toggle && "$long" =~ no- ]]; then
-                    print -R "$variable=0"
-                fi
-                ;;
-            -* )
-                short="${args[$i]}"
-                short="${short:0:2}"
-                flag=$short
-                [[ -z "${argument_properties[$short]}" ]] && { print -R "$error $context unknown ${short:q}"; return; }
-                eval "${argument_properties[$short]}"
-                case "$kind" in
-                    array | value )
-                        if [[ ${#${args[$i]}} -eq 2 ]]; then
-                            let i=i+1
-                        else
-                            args[i]=${${args[$i]}:2}
+                    break
+                    ;;
+                --no-* )
+                    regex='^--no-([a-zA-Z0-9][-a-zA-Z0-9]*)$'
+                    if [[ "${args[$i]}" =~ $regex ]] && [[ -n "${arguments[--$match[1]]}" ]]; then
+                        arg=( "${(@Q)${(@z)${arguments[--$match[1]]}}}" )
+                        if [[ $arg[kind] == '!' ]]; then
+                            args[$i]="--${match[1]}"
+                            negated=1
                         fi
-                        ;;
-                    * )
-                        # TODO If you have args a b and c and you get -abd what
-                        # does getopt do? Seems to just append...
-                        if [[ ${#args[i]} -gt 2 ]]; then
-                            args[i]="-${short:2}"
-                        else
-                            let i=i+1
-                        fi
-                        ;;
-                esac
-                ;;
-            *)
-                break
-                ;;
-        esac
-        case "$kind" in
-            flag | count | toggle )
-                [[ $arged -eq 0 ]] && { print -R "$error $context no_args ${flag:q}"; return; }
-                ;;
-        esac
-        case "$kind" in
-            flag )
-                print -R "$variable=0"
-                ;;
-            count )
-                print -R "let $variable=$variable+1"
-                ;;
-            toggle )
-                print -R "[[ \$$variable -eq 0 ]] && $variable=1 || variable=0"
-                ;;
-            value )
-                print -R "${variable}[1]=${args[$i]:q}"
-                let i=i+1
-                ;;
-            array )
-                print -R "${variable}+=(${args[$i]:q})"
-                let i=i+1
-                ;;
-        esac
-    done
-
-    [[ $i -eq $(( ${#args[@]} + 1 )) ]] && print -R "set --" || print -R "set -- ${(@)args[$i,-1]:q}"
+                    fi
+                    ;&
+                --* )
+                    continued=''
+                    arged=0
+                    regex='^(--[-a-zA-Z0-9]+)(=.*)?$'
+                    [[ "${args[$i]}" =~ $regex ]] || { printf '%s unknown %s %q\n' $error $context "$1"; return; }
+                    long="${match[1]}"
+                    [[ -z "${arguments[$long]}" ]] && { printf '%s unknown %s %q\n' $error $context "$long"; return; }
+                    if [[ "$match[2]" != '' ]]; then
+                        arged=1
+                        args[i]=${match[2]:1}
+                    else
+                        ((i++))
+                    fi
+                    flag=$long
+                    arg=( "${(@Q)${(@z)${arguments[$long]}}}" )
+                    ;;
+                -* )
+                    arged=0
+                    # NB Oh, it's one or for an array, but for strings we start from zero. I see.
+                    flag=${args[$i]:0:2}
+                    [[ -z "${arguments[$flag]}" ]] && { printf '%s unknown%s %s %q\n' $error $continued $context "$flag"; return; }
+                    arg=( "${(@Q)${(@z)${arguments[$flag]}}}" )
+                    case "x$arg[kind]" in
+                        x: | x@ )
+                            if [[ ${#args[$i]} -eq 2 ]]; then
+                                let i=i+1
+                            else
+                                args[i]=${args[$i]:2}
+                            fi
+                            ;;
+                        * )
+                            # TODO If you have args a b and c and you get -abd what
+                            # does getopt do? Seems to just append...
+                            if [[ ${#args[i]} -gt 2 ]]; then
+                                args[i]="-${args[i]:2}"
+                            else
+                                continued=''
+                                ((i++))
+                            fi
+                            [[ "$arg[kind]" = '!' ]] && negated=1
+                            ;;
+                    esac
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+            case "x$arg[kind]" in
+                x | x\# | x\! )
+                    (( $arged )) && { printf '%s no_args %s %q\n' $error $context "$flag"; return; }
+                    ;;
+            esac
+            case "x$arg[kind]" in
+                x )
+                    printf 'local %s=1\n' "$arg[variable]"
+                    ;;
+                x\# )
+                    printf '((%s++))\n' "$arg[variable]"
+                    ;;
+                x\! )
+                    if (( $negated )); then
+                        printf '%s=0\n' "$arg[variable]"
+                    else
+                        printf '%s=1\n' "$arg[variable]"
+                    fi
+                    ;;
+                * )
+                    (( i <= ${#args[@]} )) || { printf '%s arg_missing %s %q\n' $error $context "$flag"; return; }
+                    if [[ "$localized[$arg[variable]]" != 1 ]]; then
+                        printf '{ [[ ! -v %s ]] || [[ "${(t)%s}" != %s ]] } && typeset%s %s\n' \
+                            "$arg[variable]" "$arg[variable]" \
+                            "$arg[type_name]" "$arg[type_flag]" "$arg[variable]"
+                    fi
+                    case "x$arg[kind]" in
+                        x: )
+                            printf '%s=%q\n' "$arg[variable]" "$args[$i]"
+                            ((i++))
+                            ;;
+                        * )
+                            [[ "$localized[$arg[variable]]" != 1 ]] && printf '%s=()\n' "$arg[variable]"
+                            case "x$arg[kind]" in
+                                x@ )
+                                    printf '%s+=(%s)\n' "$arg[variable]" "${args[$i]:q}"
+                                    ((i++))
+                                    ;;
+                                x% )
+                                    delimiter=$arg[remainder]
+                                    split=("${(@ps:$delimiter:)args[2]}")
+                                    if (( ${#split[@]} == 1 )); then
+                                        (( i + 1 <= ${#args[@]} )) || {
+                                            print -R "$error $context arg_missing ${flag:q}"; return;
+                                        }
+                                        printf '%s+=(%s %s)\n' "$arg[variable]" "${args[$i]:q}" "${args[$i+1]:q}"
+                                        ((i+=2))
+                                    else
+                                        printf '%s+=(%s %s)\n' "$arg[variable]" \
+                                            "${split[1]:q}" "${(pj:$delimiter:)${(@)split[2,-1]}}"
+                                        ((i++))
+                                    fi
+                                    ;;
+                            esac
+                            ;;
+                    esac
+                    localized[$arg[variable]]=1
+                    ;;
+                * )
+            esac
+        done
+    } always {
+        (( i ==  ${#args[@]} + 1 )) && printf 'set --\n' || printf 'set -- %s\n' "${(j: :)${(@qq)${(@)args[$i,-1]}}}"
+    }
 }
 
 dotctl_parse_arguments_error() {
@@ -273,10 +303,10 @@ dotctl_cleanup() {
 
 trap dotctl_cleanup EXIT INT TERM
 
-dotctl_parse_arguments() {
-    local command=${1:-}
-    zsh_parse_arguments dotctl_parse_arguments_error "$@"
-    print -R "[[ \$o_help -eq 0 ]] && dotctl_usage ${command:q}"
+function dotctl_parse_arguments {
+    typeset command=${1:-}
+    zsh_parse_arguments acrectl_parse_arguments_error "$@"
+    print -R "(( \$o_help )) && acrectl_usage ${command:q}"
 }
 
 # Create a list of valid commands based on the command function declarations.
