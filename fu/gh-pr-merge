@@ -1,0 +1,6 @@
+(){
+    gh pr merge \
+        --subject="$(printf '%s <- %s' $(gh pr view --json baseRefName --jq .baseRefName "$1") $(git rev-parse --abbrev-ref HEAD))" \
+        --body='' \
+        --merge "$1"
+} 275
