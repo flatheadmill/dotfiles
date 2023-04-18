@@ -1,0 +1,7 @@
+(){
+    gh pr create \
+        --project="Site Reliability Engineering" \
+        --base="$1" \
+        --title="$(printf '`%s <- %s`' $1 $(git rev-parse --abbrev-ref HEAD))" \
+        --assignee=@me
+} production
