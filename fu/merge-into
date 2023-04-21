@@ -1,0 +1,6 @@
+(){
+    typeset current=$(git rev-parse --abbrev-ref HEAD)
+    git checkout $1
+    git merge --no-ff $current -m "$(git rev-parse --abbrev-ref HEAD) <- $current"
+    git checkout $current
+} sandbox
