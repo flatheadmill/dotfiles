@@ -61,7 +61,12 @@ if [[ -d ~/.usr/share/zsh/functions ]]; then
     fpath=( ~/.usr/share/zsh/functions "${fpath[@]}" )
 fi
 
-autoload -U compinit; compinit
+# Initialize completions.
+autoload -U compinit
+compinit
+
+# Completions for `delta`.
+command -v delta > /dev/null && compdef _gnu_generic delta   
 
 # Outgoing?
 autoload -Uz fu
