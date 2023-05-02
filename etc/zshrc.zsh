@@ -40,12 +40,15 @@ setopt PUSHD_MINUS              # Transpose the meanings of `+` and `-` when ref
 # | Completions |
 # +-------------+
 
-_comp_options+=(globdots)       # With hideen files.
+_comp_options+=(globdots)       # With hidden files.
 # TODO Why is this one special? Can't be right.
 aws_zsh_completer=$(which aws_zsh_completer.sh)
 if [[ $? -eq 0 ]]; then
     source $aws_zsh_completer
 fi
+
+# Completions I've gathered along the way.
+fpath=( ~/.dotfiles/completions $fpath )
 
 # TODO Where do I put my Unix completions?
 if whence brew > /dev/null; then
