@@ -141,3 +141,5 @@ autocmd  CursorMoved *.py,*.html,*.js :call PrettyRobotsCommentate()
 
 " Without this C99 compound literals do not highlight correctly.
 let c_no_curly_error=1
+
+autocmd BufEnter * :syntax sync fromstart
