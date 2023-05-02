@@ -51,9 +51,7 @@ fi
 fpath=( ~/.dotfiles/completions $fpath )
 
 # TODO Where do I put my Unix completions?
-if whence brew > /dev/null; then
-    fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
-fi
+command -v brew && fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
 
 # Dubious.
 fpath=( ~/.dotfiles/share/zsh/functions "${fpath[@]}" )
