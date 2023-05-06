@@ -5,6 +5,10 @@ color_end="\033[0m"
 
 # Check unwanted trailing whitespace or space/tab indents;
 
+if git rev-parse -q --verify MERGE_HEAD; then
+    exit 0
+fi
+
 if [ "x`git diff --cached --check`" != "x" ]; then
     echo -e ${red}Commit failed${color_end}
     git diff --cached --check
