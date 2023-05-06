@@ -40,17 +40,18 @@ setopt PUSHD_MINUS              # Transpose the meanings of `+` and `-` when ref
 # | Completions |
 # +-------------+
 
-_comp_options+=(globdots)       # With hideen files.
+_comp_options+=(globdots)       # With hidden files.
 # TODO Why is this one special? Can't be right.
 aws_zsh_completer=$(which aws_zsh_completer.sh)
 if [[ $? -eq 0 ]]; then
     source $aws_zsh_completer
 fi
 
+# Completions I've gathered along the way.
+fpath=( ~/.dotfiles/completions $fpath )
+
 # TODO Where do I put my Unix completions?
-if whence brew > /dev/null; then
-    fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
-fi
+command -v brew && fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
 
 # Dubious.
 fpath=( ~/.dotfiles/share/zsh/functions "${fpath[@]}" )
@@ -58,7 +59,12 @@ if [[ -d ~/.usr/share/zsh/functions ]]; then
     fpath=( ~/.usr/share/zsh/functions "${fpath[@]}" )
 fi
 
-autoload -U compinit; compinit
+# Initialize completions.
+autoload -U compinit
+compinit
+
+# Completions for `delta`.
+command -v delta > /dev/null && compdef _gnu_generic delta   
 
 # Outgoing?
 autoload -Uz fu
@@ -115,3 +121,17 @@ mnml_ssh() {
         fi
     fi
 }
+
+function airbrush {
+  local histsize=$HISTSIZE
+  if [ ! -z "$1" ]; then
+    history | grep -e "$1"
+    HISTSIZE=0
+    LC_ALL=C sed -i -e '/'"$1"'/d' "$HISTFILE"
+    HISTSIZE=$histsize
+    fc -R
+  fi
+}
+
+autoload edit-command-line; zle -N edit-command-line; 
+bindkey -M vicmd v edit-command-line

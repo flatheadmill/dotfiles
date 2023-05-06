@@ -1,4 +1,4 @@
-function airbrush () {
+function airbrush {
   local histsize=$HISTSIZE
   if [ ! -z "$1" ]; then
     history | grep -e "$1"
