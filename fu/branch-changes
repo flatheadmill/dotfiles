@@ -1,7 +1,7 @@
 () {
     typeset first_in_branch=$(
-        git rev-list --exclude-first-parent-only  ^$1 HEAD | tail -1
+        git rev-list --exclude-first-parent-only  "^$1" HEAD | tail -1
     )
-    typeset fork_point=$(git rev-parse $first_in_branch^)
+    typeset fork_point=$(git rev-parse "$first_in_branch^")
     git log --decorate $fork_point..HEAD
 } sandbox
