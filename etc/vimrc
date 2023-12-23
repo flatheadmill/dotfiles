@@ -137,7 +137,7 @@ fun! PrettyRobotsCommentate ()
     end
 endf
 
-autocmd  CursorMoved *.py,*.html,*.js :call PrettyRobotsCommentate()
+autocmd CursorMoved *.py,*.html,*.js :call PrettyRobotsCommentate()
 
 " Without this C99 compound literals do not highlight correctly.
 let c_no_curly_error=1
