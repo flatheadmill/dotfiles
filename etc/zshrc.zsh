@@ -3,9 +3,9 @@
 # +-------------+
 
 export EDITOR=vim               # Set the default editor.
-export HISTSIZE=1000           # As much history in memory as possible.
-export SAVEHIST=10000           # As much history saved to disk as is possible.
-export HISTFILESIZE=10000
+export HISTSIZE=100000           # As much history in memory as possible.
+export SAVEHIST=100000           # As much history saved to disk as is possible.
+export HISTFILESIZE=100000
 export HISTFILE=~/.zsh_history
 
 # +-----------------+
