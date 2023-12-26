@@ -4,12 +4,15 @@ set nojoinspaces        " do not add two spaces after a period
 set expandtab           " ensure consistency between editors
 set tabstop=4           " eight is too much, keep it short
 set shiftwidth=4        " eight is too much, keep it short
-set textwidth=80        " short lines too
-set history=10000       " never forget
+set textwidth=78        " short lines too
+" there's also `viminfo` to configure.
+" https://vi.stackexchange.com/questions/2920/how-to-further-increase-cmdline-history-size
+set history=10000      " never forget
 set autoindent          " make things pretty
 set modelines=1         " no longer the default?
 set visualbell          " don't disturb the neighbors
-let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
+" this is on parole, let's see if we can just keep our final endings straight.
+" let g:is_bash=1         " even old-timey bourne looks awful without `is_bash`
 syntax on               " colorize source
 
 " put search results in the middle of the screen
@@ -20,6 +23,32 @@ syntax on               " colorize source
 :nnoremap # #zz
 :nnoremap g* g*zz
 :nnoremap g# g#zz
+
+" Learn VimScript the Hard Way
+
+" Echoing Messages.
+" Echo a cat on start up and store in in the messages history.
+
+" echom ">^.^<"
+
+" Non-Modal Mapping
+
+" the following is not modal and will trigger in any mode
+" :map - ddp
+
+" Modal Mapping - normal mode
+
+:nmap - ddp
+:nmap _ ddkP
+
+" Modal Mapping - insert mode
+
+" types to `d`s in visual mode
+" :imap <C-D> dd
+" delete a line in insert mode, but you end up in normal mode
+" :imap <C-D> <esc>dd
+" delete a line in insert mode, stay in insert mode
+:imap <C-x> <esc>ddi
 
 " TODO Learn how to set settings by file type.
 
@@ -36,6 +65,8 @@ au BufRead,BufNewFile *._js set comments=:# ft=javascript
 au BufEnter rules set noet
 au BufEnter,BufNewFile *.go,Makefile set noet
 au BufEnter COMMIT_EDITMSG set tw=72
+au BufEnter PULL_REQUEST_EDITMSG set ft=markdown
+au BufEnter PULL_REQUEST_EDITMSG :Goyo
 
 " Do you remember the time you spent with Jamfiles?
 au BufEnter Jamfile.v2,Jamfile,*.jam set tw=0 et
@@ -94,21 +125,32 @@ call plug#end()
 "set background=dark
 "set background=light
 
+" Color name (:help cterm-colors) or ANSI code
+let g:limelight_conceal_ctermfg = 'gray'
+let g:limelight_conceal_ctermfg = 240
+
+" Color name (:help gui-colors) or RGB color
+let g:limelight_conceal_guifg = 'DarkGray'
+let g:limelight_conceal_guifg = '#777777'
+
 function! s:goyo_enter()
     silent !tmux set status off
     silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
-    Limelight
-    set linebreak
-    set tw=0
+    "Limelight
+    PencilOff
+    PencilSoft
+    "set linebreak
+    "set tw=0
     colo seoul256-light
 endfunction
 
 function! s:goyo_leave()
     silent !tmux set status on
     silent !tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z
-    Limelight!
-    set nolinebreak
-    set tw=72
+    "Limelight!
+    PencilOff
+    "set nolinebreak
+    "set tw=72
     colo default
 endfunction
 
