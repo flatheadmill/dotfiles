@@ -1,0 +1,3 @@
+(){
+    print -- $1 'namespaces="git"' $(curl -s https://api.github.com/users/$2/ssh_signing_keys | jq -r '.[] | .key')  >> ~/.git.signers
+} alan@prettyrobots.com flatheadmill
