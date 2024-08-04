@@ -23,17 +23,17 @@
   attributesFile = ~/.dotfiles/etc/git/attributes
   pager = less -x1,5
 ; oft typed urls
-[url "git@github.com:bigeasy/"]
-  insteadOf = bigeasy:
-  insteadOf = git://github.com/bigeasy/
-[url "git@github.com:flatheadmill/"]
-  insteadOf = flatheadmill:
-  insteadOf = git://github.com/flatheadmill/
+;[url "git@github.com:bigeasy/"]
+;  insteadOf = bigeasy:
+;  insteadOf = git://github.com/bigeasy/
+;[url "git@github.com:flatheadmill/"]
+;  insteadOf = flatheadmill:
+;  insteadOf = git://github.com/flatheadmill/
 ; attempt to push read-only repos back to git if you can
 ;[url "git@github.com:"]
 ;  pushInsteadOf = https://github.com/
 ;  pushInsteadOf = git://github.com/
-;; Atlassian SourceTree added the following
+; Atlassian SourceTree added the following
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
