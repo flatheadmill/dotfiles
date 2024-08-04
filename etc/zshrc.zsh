@@ -36,6 +36,8 @@ setopt PROMPT_SUBST             # Perform parameter expansion, command substitut
 setopt PUSHD_IGNORE_DUPS        # Don’t push multiple copies of the same directory onto the directory stack.
 setopt PUSHD_MINUS              # Transpose the meanings of `+` and `-` when referencing the stack.
 
+unsetopt extendedglob
+
 # +-------------+
 # | Completions |
 # +-------------+
