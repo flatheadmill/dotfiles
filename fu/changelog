@@ -1,5 +1,5 @@
 () {
     git notes | \
-	awk '{if (!system("git merge-base --is-ancestor "$2" HEAD")) {print $2}}' | \
-	xargs git show --abbrev-commit --oneline -s --notes
+    awk '{if (!system("git merge-base --is-ancestor "$2" HEAD")) {print $2}}' | \
+    xargs git show --abbrev-commit --oneline -s --notes
 }
