@@ -13,8 +13,8 @@
 # a sandwich, if not, move it to an outgoing home directly. Let the user know
 # that a file was to be overwitten so we moved it out of the way.
 
-abend () {
-  printf "fatal: %s\n" "$1" 2>&1 && exit 1
+function abend {
+    printf "fatal: %s\n" "$1" 2>&1 && exit 1
 }
 
 git_version=$(git --version 2>/dev/null)
@@ -27,31 +27,30 @@ if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "
   abend "git is at version $git_version but must be at least 1.7.10"
 fi
 
-# TODO Convert to `zsh -c "$(curl https://zsh.prettybots.com)"`
-#       With this you can know that zsh is installed and the zsh that the user
-#       wants to use. You can change shell with...
-case "$(sudo -n echo 1 2>&1)" in
-    1 )
-        printf 'Changing your shell to Zsh.'
-        ;;
-    *assword* )
-        printf 'We are going to use `sudo chsh` to change your shell, but we need your password to do so.\n'
-        ;;
-    * )
-        abend 'You can only use these dotfiles with Zsh. Please change your shell.'
-        ;;
-esac
-
 if [[ $(basename $SHELL) != "zsh" ]]; then
-  if [[ "$1" = "sudo" ]]; then
-    sudo chsh -s $(which zsh) $USER
-  else
-    if [[ "$OSTYPE" = "linux-gnu" ]]; then
-      abend "you need to: sudo usermod --shell $(which zsh) $USER"
+    # TODO Convert to `zsh -c "$(curl https://zsh.prettybots.com)"`
+    #       With this you can know that zsh is installed and the zsh that the user
+    #       wants to use. You can change shell with...
+    case "$(sudo -n echo 1 2>&1)" in
+        1 )
+            printf 'Changing your shell to Zsh.'
+            ;;
+        *assword* )
+            printf 'We are going to use `sudo chsh` to change your shell, but we need your password to do so.\n'
+            ;;
+        * )
+            abend 'You can only use these dotfiles with Zsh. Please change your shell.'
+            ;;
+    esac
+    if [[ "$1" = "sudo" ]]; then
+        sudo chsh -s $(which zsh) $USER
     else
-      abend "you need to: sudo chsh -s $(which zsh) $USER"
+        if [[ "$OSTYPE" = "linux-gnu" ]]; then
+            abend "you need to: sudo usermod --shell $(which zsh) $USER"
+        else
+            abend "you need to: sudo chsh -s $(which zsh) $USER"
+        fi
     fi
-  fi
 fi
 
 # Configure SSH for GitHub.
@@ -80,6 +79,7 @@ if [[ $(ssh-keygen -F github.com | wc -c) -eq 0 ]]; then
     # Get that fingerprint.
     fp=$(ssh-keygen -t ed25519 -q -l -f "$tmp/known_hosts" -F github.com | cut -f3 -d' ')
 
+    # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
     if [[ $fp = "SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU" ]]; then
     # If the fingerprint is good, write the same line to our known hosts file.
         echo "$hosts ssh-ed25519 $key" >> ~/.ssh/known_hosts
@@ -104,11 +104,15 @@ fi
 
 stamp=$(date +'%F-%T' | sed 's/:/-/g')
 
-function create_rc () {
+# todo: Wouldn't it be nice for this to sweep up anything that gets appended
+# by an install into the `rc` file? Probably just need to take the results of
+# a diff and append that. Makes this not quite indempotent, but useful.
+
+function create_rc {
     local home_file=$1 skel_file=$2
     local home_path="$HOME/$home_file"
     local skel_path="$HOME/.dotfiles/skel/$skel_file"
-    if [ -e "$home_path" ] && ! diff "$home_path" "$skel_path" > /dev/null; then
+    if [[ -e $home_path ]] && ! diff "$home_path" "$skel_path" > /dev/null; then
         mkdir -p "$HOME/.dotfiles/replaced/$stamp"
         mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
     fi
@@ -131,6 +135,10 @@ mkdir -p ~/.dotfiles/vendor
 
 if [[ ! -e ~/.dotfiles/vendor/minimal.zsh ]]; then
     curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
+fi
+
+if [[ ! -d ~/.tmux/plugins/tpm ]]; then
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 fi
 
 mkdir -p ~/.usr/bin ~/.usr/tmp
