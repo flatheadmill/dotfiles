@@ -108,6 +108,7 @@ Plug 'tommcdo/vim-lion'
 Plug 'sainnhe/vim-color-lost-shrine'
 Plug 'reedes/vim-pencil'
 Plug 'prurigro/vim-markdown-concealed'
+Plug 'grafana/vim-alloy'
 Plug 'endel/vim-github-colorscheme'
 Plug 'hashivim/vim-terraform'
 "Plug 'dpc/vim-smarttabs'
@@ -180,7 +181,7 @@ fun! PrettyRobotsCommentate ()
     end
 endf
 
-autocmd CursorMoved *.py,*.html,*.js :call PrettyRobotsCommentate()
+autocmd CursorMoved *.py,*.html,*.js,*.alloy :call PrettyRobotsCommentate()
 
 " Without this C99 compound literals do not highlight correctly.
 let c_no_curly_error=1
