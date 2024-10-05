@@ -1164,8 +1164,9 @@ install_osx_requirements() {
 # amalgamated utilities. A place to keep the things that I run all the time in
 # bits in pieces as whole programs.
 # ___
-
-main() {
+function {
+    typeset dir=${ZSH_ARGZERO:A}
+    source $dir/../lib/dotctl/parse.zsh
     declare -A dotctl_registers=( install_force 1 install_used_package_manager 1 )
 
     declare -A ALPHABET
@@ -1201,5 +1202,3 @@ main() {
     [[ $# -eq 0 ]] && dotctl_usage root
     dotctl_next_command '' "$@"
 }
-
-main "$@"
