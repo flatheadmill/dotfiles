@@ -165,6 +165,10 @@ filetype plugin indent off
 au BufEnter,BufNewFile *.py,*.html,*.js set formatoptions-=t
 au BufLeave *.py,*.html,*.js set formatoptions+=t
 
+au BufEnter,BufNewFile *.ytt.yaml EnableYtt
+au BufEnter,BufNewFile *.ytt.yaml set comments=b:#!
+au BufLeave *.ytt.yaml DisableYtt
+
 " Sets the wrap for comments based on the indent. If the indent is small the
 " comments wrap at the same left margin. If it is large we allow the comments to
 " have a minimum width.
