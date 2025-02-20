@@ -115,6 +115,7 @@ Plug 'hashivim/vim-terraform'
 Plug 'lifepillar/pgsql.vim'
 Plug 'google/vim-jsonnet'
 Plug 'morhetz/gruvbox'
+Plug 'grafana/vim-alloy'
 
 call plug#end()
 
