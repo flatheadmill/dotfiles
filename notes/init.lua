@@ -1,5 +1,15 @@
 --[[
 
+NeoVIM works fine on Firefox following the troubleshooting. It will not work
+on a Chrome Linux that has been installed with Snap. There will be references
+to something called Flatpack that will attempt to sandbox Chrome. You
+installed Flatseal, a permissions management GUI, and gave full permissions to
+the filesystem and it didn't work. Using the `.deb` downloaded from Google,
+that works through.
+
+Use chrome://extensions/shortcuts to set Ctl+E or Apple+E as your activation
+shortcut.
+
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
@@ -242,7 +252,7 @@ require('lazy').setup({
 	  'glacambre/firenvim',
 	  -- Lazy load firenvim
 	  -- Explanation: https://github.com/folke/lazy.nvim/discussions/463#discussioncomment-4819297
-	  lazy = not vim.g.started_by_firenvim,
+--	  lazy = not vim.g.started_by_firenvim,
 	  build = function()
 		  vim.fn["firenvim#install"](0)
 	  end
@@ -504,15 +514,15 @@ local on_attach = function(_, bufnr)
 end
 
 -- document existing key chains
-require('which-key').register {
-  ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-  ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-  ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
-  ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
-  ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-  ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-  ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-}
+--require('which-key').register {
+--  ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
+--  ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
+--  ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
+--  ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
+--  ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
+--  ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
+--  ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+--}
 
 -- mason-lspconfig requires that these setup functions are called in this order
 -- before setting up the servers.
