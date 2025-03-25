@@ -114,6 +114,8 @@ Plug 'hashivim/vim-terraform'
 "Plug 'dpc/vim-smarttabs'
 Plug 'lifepillar/pgsql.vim'
 Plug 'google/vim-jsonnet'
+Plug 'google/vim-jsonnet'
+Plug 'morhetz/gruvbox'
 
 call plug#end()
 
@@ -124,7 +126,7 @@ call plug#end()
 " colo seoul256-light
 
 " Switch
-"set background=dark
+" set background=dark
 "set background=light
 
 " Color name (:help cterm-colors) or ANSI code
@@ -190,4 +192,8 @@ autocmd CursorMoved *.py,*.html,*.js,*.alloy :call PrettyRobotsCommentate()
 " Without this C99 compound literals do not highlight correctly.
 let c_no_curly_error=1
 
+"let g:gruvbox_contrast_light='hard'
+
 autocmd BufEnter * :syntax sync fromstart
+"autocmd vimenter * ++nested colorscheme gruvbox
+autocmd vimenter * ++nested hi Comment ctermfg=32

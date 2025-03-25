@@ -23,3 +23,10 @@ Install to this prefix: /usr/local/Cellar/tmux/2.9a_1
  $ make install
  $ exit
 ```
+
+### TODO
+
+ * Use `delta` for git diffs, install from homebrew or whereever.
+ * Determine if you have any environments where installs have to be
+ progressive, where you need a more-minimal install.
+ * Source TMUX bit by bit.
