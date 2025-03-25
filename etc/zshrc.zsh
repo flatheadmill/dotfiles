@@ -45,7 +45,7 @@ unsetopt extendedglob           # Makes `git reset --hard HEAD^` annoying, but m
 function {
     typeset part parts=(
         /usr/local/bin
-        # Homebrew
+        /opt/homebrew/bin
         ~/.usr/bin
         ~/go/bin
         ~/.cargo/bin
