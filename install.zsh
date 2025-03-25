@@ -127,6 +127,8 @@ function create_rc {
 create_rc .zshenv zshenv.zsh
 create_rc .zprofile zprofile.zsh
 create_rc .zshrc zshrc.zsh
+create_rc .zlogin zprofile.zsh
+create_rc .zlogout zprofile.zsh
 create_rc .tmux.conf tmux.conf
 create_rc .gitconfig gitconfig
 create_rc .vimrc vimrc

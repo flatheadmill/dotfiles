@@ -1,3 +1,40 @@
+# +----------------------------+
+# | Operating System Detection |
+# +----------------------------+
+
+function {
+    case $OSTYPE in
+        linux-gnu )
+            if (( ${${(@f)"$(</etc/os-release)"}[(I)ID*=*(ubuntu|pop)]} )); then
+                export DOTFILES_OSTYPE=ubuntu
+            fi
+    esac
+}
+
+# +------+
+# | PATH |
+# +------+
+
+# Reset path when we start a new interactive shell.
+export PATH=/bin:/usr/bin
+
+function {
+    typeset part parts=(
+        /usr/local/bin
+        /opt/homebrew/bin
+        ~/.dotfiles/bin
+        ~/.usr/bin
+        ~/go/bin
+        ~/.cargo/bin
+        ~/.asdf/shims
+    )
+    for part in "${(@)parts}"; do
+        if [[ -d $part ]] && (( ! ${path[(Ie)$part]} )); then
+            export PATH=$part:$PATH
+        fi
+    done
+}
+
 # +-------------+
 # | Environment |
 # +-------------+
@@ -37,27 +74,6 @@ setopt PUSHD_MINUS              # Transpose the meanings of `+` and `-` when ref
 unsetopt BEEP                   # Perhaps someday I'll want a visual bell, but the sound is annoying.
 
 unsetopt extendedglob           # Makes `git reset --hard HEAD^` annoying, but maybe it should be.
-
-# +------+
-# | PATH |
-# +------+
-
-function {
-    typeset part parts=(
-        /usr/local/bin
-        /opt/homebrew/bin
-        ~/.usr/bin
-        ~/go/bin
-        ~/.cargo/bin
-        ~/.asdf/shims
-    )
-    print here
-    for part in "${(@)parts}"; do
-        if [[ -d $part ]] && [[ ":${PATH}:" != *:$part:* ]]; then
-            export PATH=$part:$PATH
-        fi
-    done
-}
 
 # +-----------------+
 # | TMUX SSH socket |
