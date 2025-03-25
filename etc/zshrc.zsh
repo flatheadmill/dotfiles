@@ -151,9 +151,6 @@ my_precmd() {
 }
 
 
-bindkey -v
-bindkey '^R' history-incremental-pattern-search-backward 
-
 mnml_ssh() {
     if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
         typeset hostname=$(hostname -f) parts=( "${(a@s/./)hostname}" )
@@ -176,5 +173,23 @@ function airbrush {
     fi
 }
 
+if [[ -e /usr/share/google-cloud-sdk/completion.zsh.inc ]]; then
+    source /usr/share/google-cloud-sdk/completion.zsh.inc
+fi
+
+if whence kubectl > /dev/null; then
+    source <(kubectl completion zsh)
+fi
+
+if whence ytt > /dev/null; then
+    source <(ytt completion zsh)
+fi
+
+if whence kapp > /dev/null; then
+    source <(kapp completion zsh)
+fi
+
+bindkey -v
+bindkey '^R' history-incremental-pattern-search-backward 
 autoload edit-command-line; zle -N edit-command-line; 
 bindkey -M vicmd v edit-command-line
