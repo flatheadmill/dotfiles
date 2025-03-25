@@ -1,32 +1,12 @@
-# Where are we?
-src="$0"
-dir="$( dirname "$src" )"
-while [ -h "$src" ]
-do 
-  src="$(readlink "$src")"
-  [[ $src != /* ]] && src="$dir/$source"
-  dir="$( cd -P "$( dirname "$src"  )" && pwd )"
-done
+# Ignore all operating specific configuration. Take complete ownership of Zsh.
+unsetopt GLOBAL_RCS
 
-dir="$( cd -P "$( dirname "$src" )" && pwd )"
+# TMUX will always start us as a login shell, so we are always going to
+# inherit the `$PATH` of the terminal. We reset it here and set it explicitly.
+export PATH=/bin:/usr/bin
 
-DOTFILES="$( dirname "$dir" )"
-PATH="$DOTFILES/bin":$PATH
-
-if [ -d /opt/bin ]; then
-  PATH="/opt/bin:$PATH"
-fi
-
-if [ -d $HOME/.usr/share/npm/bin ]; then
-  PATH=$HOME/.usr/share/npm/bin:$PATH
-fi
-
-if [ -e ~/.usr/bin ]; then
-  PATH=~/.usr/bin:$PATH
-fi
-
-if [ -d "$HOME/node_modules/.bin" ]; then
-  PATH=$PATH:$HOME/node_modules/.bin
-fi
-
-export PATH DOTFILES
+# Operating systems in which we currently run are OS X, Ubuntu, and Apache.
+case $OSTYPE in
+    linux-gnu )
+        ;;
+esac

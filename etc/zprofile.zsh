@@ -1,3 +1,5 @@
+return
+
 if [[ $OSTYPE = darwin* ]]; then
     if [[ $(uname -m) = arm64 && -e /opt/homebrew/bin ]]; then
         export PATH=/opt/homebrew/bin:$PATH

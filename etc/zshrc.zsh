@@ -2,7 +2,7 @@
 # | Environment |
 # +-------------+
 
-export EDITOR=vim               # Set the default editor.
+export EDITOR=vim                # Set the default editor.
 export HISTSIZE=100000           # As much history in memory as possible.
 export SAVEHIST=100000           # As much history saved to disk as is possible.
 export HISTFILESIZE=100000
@@ -28,15 +28,55 @@ setopt COMPLETE_IN_WORD         # This will expand `fbar` to `foobar` when the c
 setopt NO_FLOW_CONTROL          # Something to do with silencing the terminal. TODO Enable and observe and research.
 setopt INTERACTIVE              # Insist that this is an interactive shell.
 setopt INTERACTIVE_COMMENTS     # Allow comments even in interactive shells.
-setopt LOGIN                    # Insist that this a login shell.
 setopt LONG_LIST_JOBS           # Print job notifications in the long format by default.
 setopt MONITOR                  # Allow job control. Set by default in interactive shells.
 setopt PROMPT_SUBST             # Perform parameter expansion, command substitution, and arithmetic expansion in prompts.
                                 # TODO ^ Do I need this when I'm using `minimal.zsh`?
 setopt PUSHD_IGNORE_DUPS        # Don’t push multiple copies of the same directory onto the directory stack.
 setopt PUSHD_MINUS              # Transpose the meanings of `+` and `-` when referencing the stack.
+unsetopt BEEP                   # Perhaps someday I'll want a visual bell, but the sound is annoying.
 
-unsetopt extendedglob
+unsetopt extendedglob           # Makes `git reset --hard HEAD^` annoying, but maybe it should be.
+
+# +------+
+# | PATH |
+# +------+
+
+function {
+    typeset part parts=(
+        /usr/local/bin
+        # Homebrew
+        ~/.usr/bin
+        ~/go/bin
+        ~/.cargo/bin
+        ~/.asdf/shims
+    )
+    print here
+    for part in "${(@)parts}"; do
+        if [[ -d $part ]] && [[ ":${PATH}:" != *:$part:* ]]; then
+            export PATH=$part:$PATH
+        fi
+    done
+}
+
+# +-----------------+
+# | TMUX SSH socket |
+# +-----------------+
+
+if [ -n "$TMUX" ]; then
+  function refresh {
+    typeset ssh_auth_sock=$(tmux show-environment | grep "^SSH_AUTH_SOCK")
+    if [[ -n $ssh_auth_sock ]]; then
+        export "$ssh_auth_sock"
+    fi
+  }
+else
+  function refresh {}
+fi
+
+function preexec {
+    refresh
+}
 
 # +-------------+
 # | Completions |
@@ -85,20 +125,6 @@ source $HOME/.dotfiles/vendor/minimal.zsh
 # https://www.babushk.in/posts/renew-environment-tmux.html
 
 #
-if [ -n "$TMUX" ]; then
-  function refresh {
-    local ssh_auth_sock="$(tmux show-environment | grep "^SSH_AUTH_SOCK")"
-    if [[ -n "$ssh_auth_sock" ]]; then
-        export "$ssh_auth_sock"
-    fi
-  }
-else
-  function refresh {}
-fi
-
-function preexec {
-    refresh
-}
 
 my_precmd() {
   vcs_info
@@ -113,9 +139,8 @@ bindkey -v
 bindkey '^R' history-incremental-pattern-search-backward 
 
 mnml_ssh() {
-    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-        local hostname=$(hostname -f)
-        typeset -a parts=( "${(a@s/./)hostname}" )
+    if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+        typeset hostname=$(hostname -f) parts=( "${(a@s/./)hostname}" )
         if (( ${#parts[@]} == 7 )); then
             printf '%b' "${parts[1][1]}.${parts[2]}.${parts[6]}.${parts[7]}"
         else
@@ -125,14 +150,14 @@ mnml_ssh() {
 }
 
 function airbrush {
-  local histsize=$HISTSIZE
-  if [ ! -z "$1" ]; then
-    history | grep -e "$1"
-    HISTSIZE=0
-    LC_ALL=C sed -i -e '/'"$1"'/d' "$HISTFILE"
-    HISTSIZE=$histsize
-    fc -R
-  fi
+    typeset histsize=$HISTSIZE
+    if [[ -n "$1" ]]; then
+        history | grep -e "$1"
+        HISTSIZE=0
+        LC_ALL=C sed -i -e '/'"$1"'/d' "$HISTFILE"
+        HISTSIZE=$histsize
+        fc -R
+    fi
 }
 
 autoload edit-command-line; zle -N edit-command-line; 
