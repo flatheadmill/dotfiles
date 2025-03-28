@@ -57,6 +57,7 @@ setopt HIST_EXPIRE_DUPS_FIRST   # Delete duplicates before deleting the tail of 
 setopt HIST_FIND_NO_DUPS        # Skip a duplicate when performing a reverse search.
 setopt HIST_IGNORE_SPACE        # Do not record command lines where leading character is a space.
 setopt HIST_VERIFY              # Don't just execute the command, load it into the line buffer.
+setopt IGNORE_EOF               # Do not exit Zsh when when Ctl+D is pressed.
 setopt INC_APPEND_HISTORY       # Incrementally append history, allows us to feed history from many `tmux` panes.
 
 setopt ALWAYS_TO_END            # Move cursor to end of completed word. TODO Disable and observe.
