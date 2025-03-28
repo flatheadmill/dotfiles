@@ -1,7 +1,0 @@
-#!/bin/bash
-
-apt-get update
-apt-get -y upgrade
-
-apt-get -y install build-essential monit libssl-dev exim4 logwatch
-apt-get -y remove cloud-init

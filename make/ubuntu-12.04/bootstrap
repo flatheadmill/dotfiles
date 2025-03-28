@@ -1,6 +1,0 @@
-#!/bin/sh
-
-apt-get install --yes python-software-properties
-add-apt-repository --yes ppa:git-core/ppa
-apt-get update
-apt-get install --yes git zsh vim rsync
