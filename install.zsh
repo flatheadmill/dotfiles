@@ -14,150 +14,126 @@
 # that a file was to be overwitten so we moved it out of the way.
 
 function abend {
-    printf "fatal: %s\n" "$1" 2>&1 && exit 1
+    typeset message
+    printf -v message "$@"
+    print -u 2 "fatal: $message"
 }
 
-git_version=$(git --version 2>/dev/null)
-if [ $? -ne 0 ]; then
-  abend "git is not installed"
-fi
-
-git_version="${git_version#git version }"
-if ! { [[ "$git_version" == 2.* ]] || [[  "$git_version" == 1.[8-9].* ]] || [[ "$git_version" == 1.7.1[0-9].* ]]; }; then
-  abend "git is at version $git_version but must be at least 1.7.10"
-fi
-
-if [[ $(basename $SHELL) != "zsh" ]]; then
-    # TODO Convert to `zsh -c "$(curl https://zsh.prettybots.com)"`
-    #       With this you can know that zsh is installed and the zsh that the user
-    #       wants to use. You can change shell with...
-    case "$(sudo -n echo 1 2>&1)" in
-        1 )
-            printf 'Changing your shell to Zsh.'
-            ;;
-        *assword* )
-            printf 'We are going to use `sudo chsh` to change your shell, but we need your password to do so.\n'
-            ;;
-        * )
-            abend 'You can only use these dotfiles with Zsh. Please change your shell.'
-            ;;
-    esac
-    if [[ "$1" = "sudo" ]]; then
-        sudo chsh -s $(which zsh) $USER
-    else
-        if [[ "$OSTYPE" = "linux-gnu" ]]; then
-            abend "you need to: sudo usermod --shell $(which zsh) $USER"
-        else
-            abend "you need to: sudo chsh -s $(which zsh) $USER"
-        fi
-    fi
-fi
-
-# Configure SSH for GitHub.
-umask 077
-
-mkdir -p ~/.ssh
-
-if [[ ! -e ~/.ssh/known_hosts ]]; then
-    touch ~/.ssh/known_hosts
-fi
-
-# If we have a key for `github.com` already, do nothing.
-if [[ $(ssh-keygen -F github.com | wc -c) -eq 0 ]]; then
-    # Get the public key from the `github.com` server.
-    key=$(ssh-keyscan -t ed25519 github.com 2> /dev/null | cut -f3 -d' ')
-
-    # Create a comma delimited list of host ip addresses and the domain.
-    hosts=$(echo $(dig -t a +short github.com  | tr '\n' ',')github.com)
-
-    # Write the known host entry with the host list and domain to a temporary
-    # file so we can use `ssh-keygen -f` to check the fingerprint.
-    tmp=$(mktemp -d)
-    trap "rm -rf $tmp" EXIT
-    echo "$hosts ssh-ed25519 $key" >> "$tmp/known_hosts"
-
-    # Get that fingerprint.
-    fp=$(ssh-keygen -t ed25519 -q -l -f "$tmp/known_hosts" -F github.com | cut -f3 -d' ')
-
-    # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
-    if [[ $fp = "SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU" ]]; then
-    # If the fingerprint is good, write the same line to our known hosts file.
-        echo "$hosts ssh-ed25519 $key" >> ~/.ssh/known_hosts
-    else
-    # If the fingerprint is bad, panic.
-        echo 'Bad GitHub SSH fingerprint!' 1>&2
-        cat "$tmp/known_hosts" 1>&2
-        exit 1
-    fi
-fi
-
-umask 022
-
-if [[ ! -e "$HOME/.vim/autoload/plug.vim" ]]; then
-    curl -sfLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-fi
-
-if [[ ! -e "$HOME/.dotfiles" ]]; then
-  git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
-fi
-
-stamp=$(date +'%F-%T' | sed 's/:/-/g')
-
-# todo: Wouldn't it be nice for this to sweep up anything that gets appended
-# by an install into the `rc` file? Probably just need to take the results of
-# a diff and append that. Makes this not quite indempotent, but useful.
-
+# We don't want the operating system's Zsh skeleton rc and we don't want the
+# garbage that installers append to our rc files. We wipe them out and we
+# don't worry about losing anything.
+#
+# We source two files on startup, `~/.dotfiles/etc/foo.rc` is our `git`
+# managed installation of `foo`. `~/.dotfiles/local/etc/foo.rc` is our local,
+# untracked changes specific to the current machine.
 function create_rc {
-    local home_file=$1 skel_file=$2
-    local home_path="$HOME/$home_file"
-    local skel_path="$HOME/.dotfiles/skel/$skel_file"
-    if [[ -e $home_path ]] && ! diff "$home_path" "$skel_path" > /dev/null; then
+    typeset home_file=$1 skel_file=$2
+    typeset home_path="$HOME/$home_file" skel_path="$HOME/.dotfiles/skel/$skel_file"
+    typeset stamp=$(date +'%F-%T' | sed 's/:/-/g')
+    if [[ -e $home_path ]] && ! diff -q "$home_path" "$skel_path" > /dev/null; then
         mkdir -p "$HOME/.dotfiles/replaced/$stamp"
         mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
     fi
     cp "$skel_path" "$home_path"
     local local_path="$HOME/.dotfiles/rc/$skel_file"
-    if [ ! -e "$local_path" ]; then
+    if [[ ! -e "$local_path" ]]; then
         mkdir -p "$HOME/.dotfiles/rc"
         touch "$local_path"
     fi
 }
 
-create_rc .zshenv zshenv.zsh
-create_rc .zprofile zprofile.zsh
-create_rc .zshrc zshrc.zsh
-create_rc .zlogin zprofile.zsh
-create_rc .zlogout zprofile.zsh
-create_rc .tmux.conf tmux.conf
-create_rc .gitconfig gitconfig
-create_rc .vimrc vimrc
+function {
+    typeset tmp
+    tmp=$(mktemp -d) || abend 'cannot create temporary directory'
+    {
+        # Must change shell to Zsh before installation.
+        [[ ${SHELL:t} = zsh ]] || abend 'change your shell to Zsh before installing'
+        # `git` is required to install.
+        whence git > /dev/null || abend 'git is not installed' 
+        typeset git_version
+        git_version=${"$(git version)"##* } || abend 'cannot read git version'
+        (( ${git_version%%.*} >= 2 )) || abend 'git is at version %s but must be at least 2.0.0' $git_version
+        # Create an `~/.ssh/known_hosts`.
+        umask 077
+        {
+            mkdir -p ~/.ssh || abend 'cannot create `~/.ssh`'
+            touch ~/.ssh/known_hosts || abend 'cannot create `~/.ssh/known_hosts`'
+        } always {
+            umask 022
+        }
+        # Add a verified `github.com` host key to our `~/.ssh/known_hosts`.
+        typeset key hosts
+        # If we have a key for `github.com` already, do nothing.
+        if [[ $(ssh-keygen -F github.com | wc -c) -eq 0 ]]; then
+            # Get the public key from the `github.com` server.
+            key=$(ssh-keyscan -t ed25519 github.com 2> /dev/null | cut -f3 -d' ') ||
+                abend 'unable to fetch `github.com` SSH keys'
 
-mkdir -p ~/.dotfiles/vendor
+            # Create a comma delimited list of host ip addresses and the domain.
+            hosts=$(print $(dig -t a +short github.com  | tr '\n' ',')github.com) ||
+                abend 'unable to resolve `github.com` DNS'
 
-if [[ ! -e ~/.dotfiles/vendor/minimal.zsh ]]; then
-    curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
-fi
+            # Get that fingerprint.
+            fp=$(ssh-keygen -t ed25519 -q -l -f <(printf '%s ssh-ed25519 %s\n' $hosts $key) -F github.com | cut -f3 -d' ')
+
+            # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+            [[ $fp = "SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU" ]] ||
+                abend 'bad `github.com` SSH fingerprint %s' $fp
+            printf '%s ssh-ed25519 %s\n' >> ~/.ssh/known_hosts
+        fi
+        # Assert that we can call `git`.
+        # https://superuser.com/questions/227509/git-ping-check-if-remote-repository-exists
+        git ls-remote git@github.com:flatheadmill/dotfiles.git unlikely_reference ||
+            abend 'unable to reach `flatheadmill/dotfiles.git`, did you forget to port forward?'
+        # Clone dotfiles.
+        if [[ ! -e "$HOME/.dotfiles" ]]; then
+            git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
+        fi
+        # Bootstrap `vim` by installing `vim-plug`.
+        curl --fail -sSfLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim ||
+                abend 'unable to install `vim-plug`'
+        # Create a directory for extensions.
+        mkdir -p ~/.dotfiles/vendor
+        # Install `subnixr/minimal` theme.
+        curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
+        # Emplace our Zsh configuration.
+        create_rc .zshenv zshenv.zsh
+        create_rc .zprofile zprofile.zsh
+        create_rc .zshrc zshrc.zsh
+        create_rc .zlogin zprofile.zsh
+        create_rc .zlogout zprofile.zsh
+        # Emplace our TMUX configuration.
+        create_rc .tmux.conf tmux.conf
+        # Emplace our Vim configuration.
+        create_rc .vimrc vimrc
+        # Emplace our `git` configuration.
+        create_rc .gitconfig gitconfig
+        if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
+            cat <<'            EOF' | sed 's/^            //'
+            Existing configuration files where replaced. The replaced files have been
+            moved to:
+
+              ~/.dotfiles/replaced/$stamp
+
+            Fish out anything you want to keep and move it to the file with the same name in
+            the directory:
+
+              ~/.dotfiles/rc
+
+            This is where your machine specific settings should be kept.
+            EOF
+        fi
+        mkdir -p ~/.local/{bin,share,state,tmp,var,super,snert}
+        touch ~/.local/var/tmux.run.log
+    } always {
+        [[ -d $tmp ]] && rm -rf $tmp
+    }
+}
+
+return
 
 if [[ ! -d ~/.tmux/plugins/tpm ]]; then
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 fi
 
-mkdir -p ~/.usr/bin ~/.usr/tmp
-touch ~/.usr/tmp/tmux.run.log
-
-if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
-    cat <<'    EOF' | sed 's/^    //'
-    Existing configuration files where replaced. The replaced files have been
-    moved to:
-
-      ~/.dotfiles/replaced/$stamp
-
-    Fish out anything you want to keep and move it to the file with the same name in
-    the directory:
-
-      ~/.dotfiles/rc
-
-    This is where your machine specific settings should be kept.
-    EOF
-fi
