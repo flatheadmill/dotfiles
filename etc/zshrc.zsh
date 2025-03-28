@@ -26,6 +26,7 @@ function {
         ~/.usr/bin
         ~/go/bin
         ~/.cargo/bin
+        ~/.nvm
         ~/.asdf/shims
     )
     for part in "${(@)parts}"; do
@@ -187,6 +188,11 @@ fi
 
 if whence kapp > /dev/null; then
     source <(kapp completion zsh)
+fi
+
+if [[ -e ~/.nvm/nvm.sh ]]; then
+    export NVM_DIR=$HOME/.nvm
+    source ~/.nvm/nvm.sh
 fi
 
 bindkey -v
