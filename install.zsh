@@ -87,8 +87,10 @@ function {
         # Create a directory for extensions.
         mkdir -p ~/.dotfiles/vendor
         # Install `subnixr/minimal` theme.
+        # https://github.com/subnixr/minimal
         curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
         # Add TMUX Plugin Manager.
+        # https://github.com/tmux-plugins/tpm
         if [[ ! -d ~/.tmux/plugins/tpm ]]; then
             git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
         fi
