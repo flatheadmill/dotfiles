@@ -99,6 +99,10 @@ function {
         mkdir -p ~/.dotfiles/vendor
         # Install `subnixr/minimal` theme.
         curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
+        # Add TMUX Plugin Manager.
+        if [[ ! -d ~/.tmux/plugins/tpm ]]; then
+            git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+        fi
         # Timestamp for our rc file sweep.
         typeset stamp=$(date +'%F-%T' | sed 's/:/-/g')
         # Emplace our Zsh configuration.
@@ -138,10 +142,3 @@ function {
         [[ -d $tmp ]] && rm -rf $tmp
     }
 }
-
-return
-
-if [[ ! -d ~/.tmux/plugins/tpm ]]; then
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-fi
-
