@@ -29,7 +29,6 @@ function abend {
 function create_rc {
     typeset home_file=$1 skel_file=$2
     typeset home_path="$HOME/$home_file" skel_path="$HOME/.dotfiles/skel/$skel_file"
-    typeset stamp=$(date +'%F-%T' | sed 's/:/-/g')
     if [[ -e $home_path ]] && ! diff -q "$home_path" "$skel_path" > /dev/null; then
         mkdir -p "$HOME/.dotfiles/replaced/$stamp"
         mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
@@ -100,6 +99,8 @@ function {
         mkdir -p ~/.dotfiles/vendor
         # Install `subnixr/minimal` theme.
         curl -sL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.dotfiles/vendor/minimal.zsh
+        # Timestamp for our rc file sweep.
+        typeset stamp=$(date +'%F-%T' | sed 's/:/-/g')
         # Emplace our Zsh configuration.
         create_rc .zshenv zshenv.zsh
         create_rc .zprofile zprofile.zsh
@@ -117,8 +118,8 @@ function {
         git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
         git config --file ~/.local/etc/gitconfig --add user.email 'alan@prettyrobots.com'
         git config --file ~/.local/etc/gitconfig --add github.user 'flatheadmill'
-        # Announce.
-        if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
+        # Announce. TODO Sweep to `~/.local`.
+        if [[ -d "$HOME/.dotfiles/replaced/$stamp" ]]; then
             cat <<'            EOF' | sed 's/^            //'
             Existing configuration files where replaced. The replaced files have been
             moved to:
