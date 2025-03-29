@@ -112,6 +112,11 @@ function {
         create_rc .vimrc vimrc
         # Emplace our `git` configuration.
         create_rc .gitconfig gitconfig
+        # Could as easily be in my standard config, but I keep it here to
+        # remind myself that this is how you tweak local installations.
+        git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
+        git config --file ~/.local/etc/gitconfig --add user.email 'alan@prettyrobots.com'
+        git config --file ~/.local/etc/gitconfig --add github.user 'flatheadmill'
         # Announce.
         if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
             cat <<'            EOF' | sed 's/^            //'
