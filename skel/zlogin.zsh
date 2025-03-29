@@ -1,2 +1,2 @@
 . ~/.dotfiles/etc/zlogin.zsh
-. ~/.dotfiles/rc/zlogin.zsh
+. ~/.local/etc/zlogin.zsh

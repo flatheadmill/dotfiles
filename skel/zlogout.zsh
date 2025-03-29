@@ -1,2 +1,2 @@
 . ~/.dotfiles/etc/zlogout.zsh
-. ~/.dotfiles/rc/zlogout.zsh
+. ~/.local/etc/zlogout.zsh

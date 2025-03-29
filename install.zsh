@@ -24,8 +24,8 @@ function abend {
 # don't worry about losing anything.
 #
 # We source two files on startup, `~/.dotfiles/etc/foo.rc` is our `git`
-# managed installation of `foo`. `~/.dotfiles/local/etc/foo.rc` is our local,
-# untracked changes specific to the current machine.
+# managed installation of `foo`. `~/.local/etc/foo.rc` is our local, untracked
+# changes specific to the current machine.
 function create_rc {
     typeset home_file=$1 skel_file=$2
     typeset home_path="$HOME/$home_file" skel_path="$HOME/.dotfiles/skel/$skel_file"
@@ -35,9 +35,9 @@ function create_rc {
         mv "$home_path" "$HOME/.dotfiles/replaced/$stamp/$skel_file"
     fi
     cp "$skel_path" "$home_path"
-    local local_path="$HOME/.dotfiles/rc/$skel_file"
+    typeset local_path="$HOME/.local/etc/$skel_file"
     if [[ ! -e "$local_path" ]]; then
-        mkdir -p "$HOME/.dotfiles/rc"
+        mkdir -p "$HOME/.local/etc"
         touch "$local_path"
     fi
 }
@@ -89,6 +89,9 @@ function {
         if [[ ! -e "$HOME/.dotfiles" ]]; then
             git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
         fi
+        # Create our `~/.local` filesystem.
+        mkdir -p ~/.local/{bin,share,state,tmp,var}
+        touch ~/.local/var/tmux.run.log
         # Bootstrap `vim` by installing `vim-plug`.
         curl --fail -sSfLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim ||
@@ -109,6 +112,7 @@ function {
         create_rc .vimrc vimrc
         # Emplace our `git` configuration.
         create_rc .gitconfig gitconfig
+        # Announce.
         if [[ -e "$HOME/.dotfiles/replaced/$stamp/$skel_file" ]]; then
             cat <<'            EOF' | sed 's/^            //'
             Existing configuration files where replaced. The replaced files have been
@@ -124,8 +128,6 @@ function {
             This is where your machine specific settings should be kept.
             EOF
         fi
-        mkdir -p ~/.local/{bin,share,state,tmp,var,super,snert}
-        touch ~/.local/var/tmux.run.log
     } always {
         [[ -d $tmp ]] && rm -rf $tmp
     }
