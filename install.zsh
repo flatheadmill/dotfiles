@@ -1,18 +1,6 @@
 #!/usr/bin/env zsh
 
-# Simple indempotent instllation.
-#
-# First, replace all rc files with a template file and over write it. Do this
-# instead of trying to add a source file line to the default rc file. The
-# default file is a sandwich, machine specific before rc, dotfiles rc, machine
-# specific after rc. The before and after are in dotfiles/rc/before and
-# dotfiles/rc/after. You simply touch them if they do not already exist. Let's
-# start with just after, since you can undo most things in rc files.
-#
-# When installing these sandwiches, check to see if the existing file is already
-# a sandwich, if not, move it to an outgoing home directly. Let the user know
-# that a file was to be overwitten so we moved it out of the way.
-
+# Abnormal end.
 function abend {
     typeset message
     printf -v message "$@"
@@ -41,6 +29,7 @@ function create_rc {
     fi
 }
 
+# Anonymous function, run once.
 function {
     typeset tmp
     tmp=$(mktemp -d) || abend 'cannot create temporary directory'
