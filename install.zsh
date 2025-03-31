@@ -34,7 +34,7 @@ function {
     typeset tmp
     tmp=$(mktemp -d) || abend 'cannot create temporary directory'
     {
-        # Must change shell to Zsh before installation.
+        # Must change shell to Zsh before installation. Why?
         [[ ${SHELL:t} = zsh ]] || abend 'change your shell to Zsh before installing'
         # `git` is required to install.
         whence git > /dev/null || abend 'git is not installed' 
