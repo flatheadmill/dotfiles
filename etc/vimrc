@@ -105,17 +105,21 @@ Plug 'junegunn/goyo.vim'
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
 Plug 'tommcdo/vim-lion'
-Plug 'sainnhe/vim-color-lost-shrine'
+"Plug 'sainnhe/vim-color-lost-shrine'
 Plug 'reedes/vim-pencil'
 Plug 'prurigro/vim-markdown-concealed'
 Plug 'grafana/vim-alloy'
 Plug 'endel/vim-github-colorscheme'
 Plug 'hashivim/vim-terraform'
 "Plug 'dpc/vim-smarttabs'
+Plug 'roxma/vim-hug-neovim-rpc'
+Plug 'roxma/nvim-yarp', { 'do': 'pip install -r requirements.txt' }
 Plug 'lifepillar/pgsql.vim'
 Plug 'google/vim-jsonnet'
 Plug 'morhetz/gruvbox'
 Plug 'grafana/vim-alloy'
+Plug 'preservim/nerdtree'
+Plug 'raghur/vim-ghost'
 
 call plug#end()
 

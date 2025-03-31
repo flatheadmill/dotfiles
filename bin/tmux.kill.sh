@@ -8,11 +8,11 @@
 
 signal=$1
 
-[ ! -e ~/.usr/tmp/tmux.run.pid ] && exit 0
+[ ! -e ~/.local/var/tmux.run.pid ] && exit 0
 
-rm -f ~/.usr/tmp/tmux.run.run
+rm -f ~/.local/var/tmux.run.run
 
-pid=$(<~/.usr/tmp/tmux.run.pid)
+pid=$(<~/.local/var/tmux.run.pid)
 ppid=$(ps axo pid,ppid | awk -v pid=$pid '$1 == pid { print $2 }')
 
 while read -r line; do

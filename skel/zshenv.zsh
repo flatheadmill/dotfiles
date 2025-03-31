@@ -1,2 +1,2 @@
 . ~/.dotfiles/etc/zshenv.zsh
-. ~/.dotfiles/rc/zshenv.zsh
+. ~/.local/etc/zshenv.zsh
