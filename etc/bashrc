@@ -1,2 +1,11 @@
-# Disable the visual bell.
-bind 'set bell-style none'
+bind 'set bell-style none'  # Disable the bell.
+
+source_if() {
+    local src=$1
+    if [[ -e "$1" ]]; then
+        source "$1"
+    fi
+}
+
+source_if /usr/share/bash-completion/bash_completion
+source_if ~/.config/bash/aphrodite/aphrodite.theme.sh

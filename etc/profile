@@ -1,2 +1,2 @@
 # Bail on our operating system configured shell and start a clean login shell.
-exec bash --noprofile --norc --init-file ~/.bashrc
+exec bash --noprofile --rcfile ~/.bashrc
