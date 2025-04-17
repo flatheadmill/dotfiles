@@ -106,7 +106,7 @@ main() {
     # Assert that we can call `git`.
     # https://superuser.com/questions/227509/git-ping-check-if-remote-repository-exists
     git ls-remote git@github.com:flatheadmill/dotfiles.git unlikely_reference ||
-        abend 'unable to reach `flatheadmill/dotfiles.git`, did you forget to port forward?'
+        abend 'unable to reach `flatheadmill/dotfiles.git`, did you forget to forward SSH?'
     # Clone dotfiles.
     if [ ! -e "$HOME/.dotfiles" ]; then
         git clone --recursive git@github.com:flatheadmill/dotfiles.git "$HOME/.dotfiles"
