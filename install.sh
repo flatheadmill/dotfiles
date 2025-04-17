@@ -9,12 +9,6 @@ abend() {
     exit 1
 }
 
-make_pub() {
-cat <<EOF
-$hosts ssh-ed25519 $key
-EOF
-}
-
 create_rc() {
     local home_file=$1 skel_file=$2
     local home_path="$HOME/$home_file" skel_path="$HOME/.dotfiles/skel/$skel_file"
