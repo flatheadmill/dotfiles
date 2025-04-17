@@ -118,6 +118,9 @@ main() {
             abend 'unable to reach `tmux-plugins/tpm.git`'
         git clone -q https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     fi
+    # Bash configuration.
+    mkdir -p ~/.config/bash/plugins
+    git_clone ~/.config/bash/plugins/aphrodite https://github.com/win0err/aphrodite-terminal-theme
     # Could as easily be in my standard config, but I keep it here to
     # remind myself that this is how you tweak local installations.
     git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
@@ -125,6 +128,13 @@ main() {
     git config --file ~/.local/etc/gitconfig --add github.user 'flatheadmill'
     if [ -d "$HOME/.local/var/dotfiles/replaced/$stamp" ]; then
         announce_copy
+    fi
+}
+
+git_clone() {
+    local directory=$1 url=$2
+    if [ ! -d "$directory" ]; then
+        git clone --quiet "$url" "$directory" || abend 'unabled to clone `%s`.' "$url"
     fi
 }
 
