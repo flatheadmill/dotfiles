@@ -24,6 +24,7 @@ function {
         /opt/homebrew/bin
         ~/.dotfiles/bin
         ~/.usr/bin
+        ~/.local/bin
         ~/go/bin
         ~/.cargo/bin
         ~/.nvm
@@ -61,7 +62,7 @@ setopt IGNORE_EOF               # Do not exit Zsh when when Ctl+D is pressed.
 setopt INC_APPEND_HISTORY       # Incrementally append history, allows us to feed history from many `tmux` panes.
 
 setopt ALWAYS_TO_END            # Move cursor to end of completed word. TODO Disable and observe.
-setopt BASH_AUTO_LIST           # Auto list on a double tab.
+#setopt BASH_AUTO_LIST           # Auto list on a double tab.
 setopt COMBINING_CHARS          # TODO Possibly requires a test before setting.
 setopt COMPLETE_IN_WORD         # This will expand `fbar` to `foobar` when the cursor is at the end of the word.
 setopt NO_FLOW_CONTROL          # Something to do with silencing the terminal. TODO Enable and observe and research.
