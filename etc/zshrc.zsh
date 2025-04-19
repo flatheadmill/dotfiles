@@ -132,7 +132,7 @@ autoload -Uz fu
 
 MNML_PROMPT=(mnml_pyenv mnml_status mnml_keymap)
 MNML_RPROMPT=('mnml_cwd 2 0' mnml_git mnml_ssh)
-source $HOME/.dotfiles/vendor/minimal.zsh
+source $HOME/.local/etc/zshrc.d/minimal.zsh
 
 # +---------------------+
 # | Prompt Interceptors |
