@@ -64,6 +64,13 @@ EOF
 
 # Here we go.
 main() {
+    # Create our `~/.local` filesystem.
+    mkdir -p ~/.local/etc/zshrc.d
+    local dir
+    for dir in bin share state tmp var; do
+        mkdir -p ~/.local/$dir
+    done
+    touch ~/.local/var/tmux.run.log
     # `git` is required to install.
     which git > /dev/null || abend 'git is not installed' 
     # Assert a reasonable `git` version.
@@ -126,13 +133,6 @@ main() {
     # Emplace our `ssh` configuration.
     create_rc .ssh/config ssh/config
     touch ~/.ssh/homeport.config
-    # Create our `~/.local` filesystem.
-    mkdir -p ~/.local/etc/zshrc.d
-    local dir
-    for dir in bin share state tmp var; do
-        mkdir -p ~/.local/$dir
-    done
-    touch ~/.local/var/tmux.run.log
     # Vim dependencies.
     curl -sSfLo ~/.vim/autoload/plug.vim --create-dirs \
         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
