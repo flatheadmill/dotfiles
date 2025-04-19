@@ -131,12 +131,18 @@ main() {
         mkdir -p ~/.local/$dir
     done
     touch ~/.local/var/tmux.run.log
-    mkdir -p ~/.local/etc/zshrc.d
-    curl -sSL https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh > ~/.local/etc/zshrc.d/minimal.zsh
+    # Vim dependencies.
+    curl -sSfLo ~/.vim/autoload/plug.vim --create-dirs \
+        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    # Zsh dependencies.
+    curl -sSo ~/.local/etc/zshrc.d/minimal.zsh --create-dirs \
+        https://raw.githubusercontent.com/subnixr/minimal/master/minimal.zsh
+    # TMUX dependncies.
     git_clone $HOME/.tmux/plugins/tpm https://github.com/tmux-plugins/tpm
-    # Bash configuration.
+    # Bash dependncies.
     mkdir -p ~/.config/bash/plugins
     git_clone $HOME/.config/bash/plugins/aphrodite https://github.com/win0err/aphrodite-terminal-theme
+    # Warn of possible rc sweep.
     if [ -d "$HOME/.local/var/dotfiles/replaced/$stamp" ]; then
         announce_copy
     fi
