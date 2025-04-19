@@ -94,7 +94,7 @@ main() {
         printf '%s ssh-ed25519 %s\n' $hosts $key >> ~/.ssh/known_hosts
     fi
     # Get our signing key, which is our private SSH key.
-    curl curl -sSLo $HOME/.ssh/id_ed25519.pub https://github.com/flatheadmill.keys
+    curl -sSLo $HOME/.ssh/id_ed25519.pub https://github.com/flatheadmill.keys
     # Could as easily be in my standard config, but I keep it here to
     # remind myself that this is how you tweak local installations.
     git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
