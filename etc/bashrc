@@ -1,4 +1,5 @@
 bind 'set bell-style none'  # Disable the bell.
+set -o vi
 
 source_if() {
     local src=$1
