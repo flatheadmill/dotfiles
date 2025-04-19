@@ -131,6 +131,15 @@ command -v delta > /dev/null && compdef _gnu_generic delta
 autoload -Uz fu
 
 source $HOME/.local/etc/zshrc.d/minimal.zsh
+function mnml_uhp {
+    local _w="%{\e[0m%}"
+    local _g="%{\e[38;5;244m%}"
+    local cwd="%~"
+    cwd="${(%)cwd}"
+    local host=%m
+    (( ${#${(s:.:)HOST}} == 7 )) && host=%M
+    printf '%b' "$_g%n$_w@$_g$host$_w:$_g${cwd//\//$_w/$_g}$_w"
+}
 MNML_PROMPT=(mnml_pyenv mnml_status mnml_keymap)
 MNML_RPROMPT=('mnml_cwd 2 0' mnml_git mnml_ssh)
 MNML_MAGICENTER=()
@@ -155,7 +164,7 @@ my_precmd() {
 }
 
 
-mnml_ssh() {
+function mnml_ssh {
     if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
         typeset hostname=$(hostname -f) parts=( "${(a@s/./)hostname}" )
         if (( ${#parts[@]} == 7 )); then
