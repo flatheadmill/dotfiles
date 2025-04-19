@@ -93,17 +93,19 @@ main() {
             abend 'bad `github.com` SSH fingerprint %s' "$fp"
         printf '%s ssh-ed25519 %s\n' $hosts $key >> ~/.ssh/known_hosts
     fi
+    # Get our signing key, which is our private SSH key.
+    curl curl -sSLo $HOME/.ssh/id_ed25519.pub https://github.com/flatheadmill.keys
+    # Could as easily be in my standard config, but I keep it here to
+    # remind myself that this is how you tweak local installations.
+    git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
+    git config --file ~/.local/etc/gitconfig --add user.email 'alan@prettyrobots.com'
+    git config --file ~/.local/etc/gitconfig --add github.user 'flatheadmill'
     # Assert that we can call `git` for our private `dotfiles` repository.
     # https://superuser.com/questions/227509/git-ping-check-if-remote-repository-exists
     git ls-remote git@github.com:flatheadmill/dotfiles.git unlikely_reference ||
         abend 'unable to reach `flatheadmill/dotfiles.git`, did you forget to forward SSH?'
     # Clone dotfiles.
     git_clone "$HOME/.dotfiles" "git@github.com:flatheadmill/dotfiles.git" --recursive
-    # Could as easily be in my standard config, but I keep it here to
-    # remind myself that this is how you tweak local installations.
-    git config --file ~/.local/etc/gitconfig --add user.name 'Alan Gutierrez'
-    git config --file ~/.local/etc/gitconfig --add user.email 'alan@prettyrobots.com'
-    git config --file ~/.local/etc/gitconfig --add github.user 'flatheadmill'
     # Timestamp for our rc file sweep.
     local stamp=$(date +'%F-%T' | sed 's/:/-/g')
     # Emplace our Zsh configuration.
