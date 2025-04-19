@@ -130,9 +130,10 @@ command -v delta > /dev/null && compdef _gnu_generic delta
 # Outgoing?
 autoload -Uz fu
 
+source $HOME/.local/etc/zshrc.d/minimal.zsh
 MNML_PROMPT=(mnml_pyenv mnml_status mnml_keymap)
 MNML_RPROMPT=('mnml_cwd 2 0' mnml_git mnml_ssh)
-source $HOME/.local/etc/zshrc.d/minimal.zsh
+MNML_MAGICENTER=()
 
 # +---------------------+
 # | Prompt Interceptors |
