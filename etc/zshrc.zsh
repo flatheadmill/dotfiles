@@ -29,7 +29,7 @@ function {
         ~/.cargo/bin
         ~/go/bin
     )
-    for part in "${(@)directories}"; do
+    for part in "${(@Oa)directories}"; do
         if [[ -d $part ]] && (( ! ${path[(Ie)$part]} )); then
             export PATH=$part:$PATH
         fi
