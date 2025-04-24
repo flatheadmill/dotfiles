@@ -19,18 +19,17 @@ function {
 export PATH=/bin:/usr/bin
 
 function {
-    typeset part parts=(
-        /usr/local/bin
-        /opt/homebrew/bin
-        ~/.dotfiles/bin
-        ~/.usr/bin
+    typeset part directories=(
         ~/.local/bin
-        ~/go/bin
-        ~/.cargo/bin
-        ~/.nvm
+        ~/.dotfiles/bin
         ~/.asdf/shims
+        /home/linuxbrew/.linuxbrew/bin
+        /opt/homebrew/bin
+        /usr/local/bin
+        ~/.cargo/bin
+        ~/go/bin
     )
-    for part in "${(@)parts}"; do
+    for part in "${(@)directories}"; do
         if [[ -d $part ]] && (( ! ${path[(Ie)$part]} )); then
             export PATH=$part:$PATH
         fi
@@ -101,7 +100,27 @@ function preexec {
 # | Completions |
 # +-------------+
 
-_comp_options+=(globdots)       # With hidden files.
+# No more sourcing completions. Install them to the correct directory if you
+# would like to see them included.
+
+_comp_options+=( globdots )       # With hidden files.
+
+function {
+    typeset brew
+    if type brew >/dev/null 2>&1; then
+        brew=$(brew --prefix)/share/zsh/site-functions
+    fi
+    typeset dir directories=(
+        $brew
+        ~/.local/share/zsh/completions
+    )
+    for dir in "${(@)directories}"; do
+        if [[ -d $dir ]] && (( ! ${fpath[(Ie)$dir]} )); then
+            fpath+=( "$dir" )
+        fi
+    done
+}
+
 # TODO Why is this one special? Can't be right.
 aws_zsh_completer=$(which aws_zsh_completer.sh)
 if [[ $? -eq 0 ]]; then
@@ -185,27 +204,6 @@ function airbrush {
         fc -R
     fi
 }
-
-if [[ -e /usr/share/google-cloud-sdk/completion.zsh.inc ]]; then
-    source /usr/share/google-cloud-sdk/completion.zsh.inc
-fi
-
-if whence kubectl > /dev/null; then
-    source <(kubectl completion zsh)
-fi
-
-if whence ytt > /dev/null; then
-    source <(ytt completion zsh)
-fi
-
-if whence kapp > /dev/null; then
-    source <(kapp completion zsh)
-fi
-
-if [[ -e ~/.nvm/nvm.sh ]]; then
-    export NVM_DIR=$HOME/.nvm
-    source ~/.nvm/nvm.sh
-fi
 
 bindkey -v
 bindkey '^R' history-incremental-pattern-search-backward 
