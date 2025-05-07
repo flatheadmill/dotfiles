@@ -1,0 +1,36 @@
+#!/usr/bin/env zsh
+
+function errf {
+    printf "$@"
+    print --
+}
+
+# https://unix.stackexchange.com/questions/706897/exporting-zsh-history-separated-by-0-characters-instead-of-n
+
+function {
+    (( $# )) || { errf 'save, list or fu name'; return 1 }
+    case "$1" in
+        save )
+            shift 
+            name=$1 
+            shift
+            typeset key=$(fc -l | cut -d' ' -f 1 | tail -n 1)
+            print "$key"
+            [[ "$name" =~ [./] ]] || name=~/.dotfiles/fu/"$name"
+            print -- "--- saved as $name ---"
+            print -R "${history[$key]}" | tee "$name"
+            return 1
+            ;;
+        list )
+            shift 
+            ls ~/.dotfiles/fu
+            ;;
+        * )
+            name=$1 
+            shift
+            [[ "$name" =~ [./] ]] || name=~/.dotfiles/fu/"$name"
+            [[ -f "$name" ]] || { errf 'not defined: %s' "$name"; return 2 }
+            print -RS "$(<"$name")"
+            ;;
+    esac
+} "$@"

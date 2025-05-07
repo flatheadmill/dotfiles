@@ -113,6 +113,7 @@ function {
     typeset dir directories=(
         $brew
         ~/.local/share/zsh/completions
+        ~/.dotfiles/share/zsh/functions
     )
     for dir in "${(@)directories}"; do
         if [[ -d $dir ]] && (( ! ${fpath[(Ie)$dir]} )); then
@@ -120,24 +121,6 @@ function {
         fi
     done
 }
-
-# TODO Why is this one special? Can't be right.
-aws_zsh_completer=$(which aws_zsh_completer.sh)
-if [[ $? -eq 0 ]]; then
-    source $aws_zsh_completer
-fi
-
-# Completions I've gathered along the way.
-fpath=( ~/.dotfiles/completions $fpath )
-
-# TODO Where do I put my Unix completions?
-command -v brew && fpath=( "$(brew --prefix)/share/zsh/site-functions" "${fpath[@]}" )
-
-# Dubious.
-fpath=( ~/.dotfiles/share/zsh/functions "${fpath[@]}" )
-if [[ -d ~/.usr/share/zsh/functions ]]; then
-    fpath=( ~/.usr/share/zsh/functions "${fpath[@]}" )
-fi
 
 # Initialize completions.
 autoload -U compinit

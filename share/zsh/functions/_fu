@@ -1,0 +1,5 @@
+#compdef fu
+
+function {
+    _values 'mp3 files' ${=$(ls ~/.dotfiles/fu)}
+} "$@"
