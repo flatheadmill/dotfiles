@@ -1,2 +1,5 @@
-# Bail on our operating system configured shell and start a clean login shell.
-exec bash --noprofile --rcfile ~/.bashrc
+# DO NOT USE exec IN .profile - IT BREAKS GNOME LOGIN!
+# This locked Alan out of GUI twice (months apart)
+# because exec REPLACES the shell process that GNOME depends on
+# Leaving this comment as a permanent reminder
+# exec bash --noprofile --rcfile ~/.bashrc  # <-- NEVER UNCOMMENT THIS
