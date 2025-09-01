@@ -106,12 +106,16 @@ function preexec {
 _comp_options+=( globdots )       # With hidden files.
 
 function {
-    typeset brew
+    typeset brew dir directories=()
     if type brew >/dev/null 2>&1; then
-        brew=$(brew --prefix)/share/zsh/site-functions
+        mkdir -p ~/.local/share/zsh/site-functions
+        brew=$(brew --prefix)
+        if [[ -e $brew && -e $brew/share/zsh/site-functions ]]; then
+            rsync -aL --delete $brew/share/zsh/site-functions/ ~/.local/share/zsh/site-functions/
+            directories+=( ~/.local/share/zsh/site-functions )
+        fi
     fi
-    typeset dir directories=(
-        $brew
+    directories+=(
         ~/.local/share/zsh/completions
         ~/.dotfiles/share/zsh/functions
     )
