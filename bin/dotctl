@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env zshctl
 
 # Parses somewhat like gnu getopt but without the completion of arguments,
 # with the potential to the `--no-` toggle, but I haven't gotten around to it.
@@ -124,201 +124,30 @@ function dotctl:cidr:inc {
     print "$(inet_ntoa $int)/$bits"
 }
 
-# ___ usage_root ___
-# .TH DOTCTL 1 "Flat Head Mill Manuals" "zsh" "Flat Head Mill Manuals"
-# .SH NAME
-# dotctl \- amaglamated utilities
-# .SH SYNOPSIS
-# .SY dotctl
-# .IR resource
-# .RI [ resource\.\.\.\& ]
-# .RI command
-# .RI [ options ]
-# .RI [ arguments ]
-# .SY dotctl
-# .IR resource
-# .RI [ resource\.\.\.\& ]
-# .RI command
-# .RI [ \-h | \-\-help ]
-# .SH DESCRIPTION
-# amalgamated utilities. A place to keep the things that I run all the time in
-# bits in pieces as whole programs.
-# ___
-function ignore {
-    typeset dir=${ZSH_ARGZERO:A}
-    source $dir/../lib/dotctl/parse.zsh
-    declare -A dotctl_registers=( install_force 1 install_used_package_manager 1 )
-
-    declare -A ALPHABET
-    for name in \
-        alfa bravo charlie delta echo foxtrot golf hotel india juliett kilo \
-        lima mike november oscar papa quebec romeo sierra tango uniform \
-        victor whiskey x-ray yankee zulu
-    do
-        ALPHABET[$name[1]]=$name
-    done
-
-    local os groff=groff
-
-    case "$OSTYPE" in
-        linux-gnu )
-            # TODO Check that Linux is Ubuntu.
-            # TODO See if Debian doesn't Just Work.
-            # TODO Support Alpine.
-            os=ubuntu
-            install_linux_requirements
-            ;;
-        darwin* )
-            # TODO Check for `xcode-select --version` on OS X.
-            # TODO Check for `brew` on OS X.
-            os=osx
-            install_osx_requirements
-            ;;
-    esac
-
-    dotctl_check_installed groff
-
-    eval "$(dotctl_parse_arguments root "h,help" -- "$@")"
-    [[ $# -eq 0 ]] && dotctl_usage root
-    dotctl_next_command '' "$@"
+function execute:kit:homebrew {
+    eval "$(args -- "$@")"
+    heredoc <<'    EOF'
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    EOF
 }
 
-function dotctl_args_error {
-    typeset func=${1:-} reason=${2:-} flag=${3:-}
-    case $reason in
-        unknown )
-            printf 'unknown argument `%s`.\n' $flag 1>&2
-            exit 1
-            ;;
-        required )
-            printf '`%s` is a required argument.\n' $flag 1>&2
-            exit 1
-            ;;
-        execute )
-            print "here's some help"
-            exit
-    esac
+function execute:kit:rustc {
+    eval "$(args -- "$@")"
+    heredoc <<'    EOF'
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    EOF
 }
 
-function args {
-    parser dotctl_args_error 2 "$@"
-    printf '(( $o_help )) && acrectl_usage %s' $funcstack[2]
+function execute:kit {
+    eval "$(args -UC -- "$@")"
+    delegate "$@"
 }
 
-function dotctl_string_resource {
-    typeset name=${1:-}
-    awk '/^(# )?___ '$name' ___/{flag=1;next}/^(# )?___/{flag=0}flag' "$dotctl_registers[string_resources]" | sed -E 's/^# ?//g'
-}
-
-function dotctl_usage {
-    typeset usage=${1:-$funcstack[2]} cols="$(tput cols)"
-    function {
-        (( cols > 120 )) && cols=120
-        if [[ $DOTCTL_MAN_FORMATTER = mandoc ]]; then
-            mandoc -O width=${cols}  -T utf8 $1
-        else
-            GROFF_NO_SGR=1 groff -rLL=${cols}n -rLT=${cols}n -Wall -mtty-char -Tutf8 -man -c "$1"
-        fi
-    } =(
-        dotctl_string_resource $usage | sed -e "$(
-            printf 's/__VERSION__/dotctl %s/' $DOTCTL_VERSION
-        )" -e "$(
-            printf 's/__RELEASE_DATE__/%s/' $DOTCTL_RELEASE_DATE
-        )"
-    ) | less
-    exit
-}
-
-function dotctl_commands {
-    DOTCTL_COMMANDS+=( "${(@f)$(sed -n 's/^function  *\(dotctl:[^:][^ ]*\) *{$/\1/p' $1)}" )
-}
-
-function delegate {
-    typeset prefix=$funcstack[2]
-    (( $# )) || abend 'fatal: %s expects a command argument' ${prefix//:/ }
-    typeset delegate=$prefix:$1
-    shift
-    (( $DOTCTL_COMMANDS[(Ie)$delegate] )) || abend 'fatal: no such command `%s`.' ${delegate//:/ }
-    $delegate "$@"
-}
-
-function dotctl:hello {
+function execute:hello {
     print 'hello, world'
 }
 
-function dotctl {
-    typeset possible_shebang=${1:-}
-    typeset -A o_block
-    typeset -A dotctl_registers=( string_resources "${ZSH_ARGZERO:a}" cwd ${PWD:a})
-    typeset DOTCTL_ARGZERO="$ZSH_ARGZERO"
-
-    source ${DOTCTL_ARGZERO:A:h:h}/lib/dotctl/parse.zsh
-    source ${DOTCTL_ARGZERO:A:h:h}/lib/dotctl/heredoc.zsh
-    source ${DOTCTL_ARGZERO:A:h:h}/lib/dotctl/block.zsh
-    source ${DOTCTL_ARGZERO:A:h:h}/lib/dotctl/catch.zsh
-    source ${DOTCTL_ARGZERO:A:h:h}/lib/dotctl/splat.zsh
-
-    typeset -A ALPHABET
-    for name in \
-        alfa bravo charlie delta echo foxtrot golf hotel india juliett kilo \
-        lima mike november oscar papa quebec romeo sierra tango uniform \
-        victor whiskey x-ray yankee zulu
-    do
-        ALPHABET[$name[1]]=$name
-    done
-
-    # TODO Is the `step` variable still necessary?
-    typeset os step
-    case "$OSTYPE" in
-        linux-gnu )
-            os=$(grep '^ID=' /etc/os-release | cut -d= -f2)
-            [[ "$os" = pop ]] && os=ubuntu
-            step=step-cli
-            [[ -z $DOTCTL_MAN_FORMATTER ]] && DOTCTL_MAN_FORMATTER=groff
-            ;;
-        darwin* )
-            os=osx
-            step=step
-            [[ -z $DOTCTL_MAN_FORMATTER ]] && DOTCTL_MAN_FORMATTER=mandoc
-            ;;
-    esac
-
-    typeset DOTCTL_COMMANDS=()
-    if [[
-        ( "$possible_shebang" =~ ^\.  || "$possible_shebang" =~ / ) &&
-        -f "$possible_shebang" &&
-        "$(head -c 14 $possible_shebang)" = '#!/usr/bin/env' &&
-        "$(head -n 1 $possible_shebang)" =~ ^#!/usr/bin/env\ +acrectl(_redux)?\ *$
-    ]]; then
-        shift
-        DOTCTL_ARGZERO="$possible_shebang"
-        dotctl_commands "${DOTCTL_ARGZERO:a}"
-        dotctl_registers[string_resources]="${DOTCTL_ARGZERO:a}"
-        source $DOTCTL_ARGZERO
-        dotctl "$@"
-    else
-        eval "$(args c,command -b h,help -- "$@")"
-        (( $# )) || dotctl_usage
-        if [[ -v o_command ]]; then
-            typeset tmp
-            { tmp=$(mktemp -d) && [[ -d "$tmp" ]]; } || exit 1
-            {
-                printf '%s' "$o_command" > "$tmp/program"
-                DOTCTL_ARGZERO="$tmp/program"
-                acrectl_extract_commands acrectl_commands "${ACRECTL_ARGZERO:a}"
-                acrectl_registers[string_resources]="${ACRECTL_ARGZERO:a}"
-                source $ACRECTL_ARGZERO
-                acrectl "$@"
-            } always {
-                rm -rf "$tmp"
-            }
-        else
-            dotctl_commands ${ZSH_ARGZERO:a}
-            delegate "$@"
-        fi
-    fi
+function execute {
+    eval "$(args -UC -- "$@")"
+    delegate "$@"
 }
-
-dotctl "$@"
-
-exit
