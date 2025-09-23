@@ -5,6 +5,23 @@ return {
     opts = require "configs.conform",
   },
 
+  {
+    "williamboman/mason.nvim",
+    cmd = "Mason",
+    opts = {},
+  },
+
+  {
+    "jay-babu/mason-nvim-dap.nvim",
+    dependencies = {
+      "williamboman/mason.nvim",
+      "mfussenegger/nvim-dap",
+    },
+    opts = {
+      ensure_installed = { "codelldb" },
+    },
+  },
+
   -- These are some examples, uncomment them if you want to see them work!
   {
     "neovim/nvim-lspconfig",

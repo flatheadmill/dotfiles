@@ -1,13 +1,13 @@
 require("nvchad.configs.lspconfig").defaults()
 
-local lspconfig = require "lspconfig"
-
--- Basic servers using vim.lsp.enable
+-- Basic servers
 local servers = { "html", "cssls" }
 vim.lsp.enable(servers)
 
--- Rust analyzer with custom settings
-lspconfig.rust_analyzer.setup {
+-- Rust analyzer with custom settings using new vim.lsp.config
+vim.lsp.config.rust_analyzer = {
+  cmd = { 'rust-analyzer' },
+  root_markers = { 'Cargo.toml', 'rust-project.json' },
   on_attach = require("nvchad.configs.lspconfig").on_attach,
   on_init = require("nvchad.configs.lspconfig").on_init,
   capabilities = require("nvchad.configs.lspconfig").capabilities,
@@ -21,4 +21,6 @@ lspconfig.rust_analyzer.setup {
       },
     },
   },
-} 
+}
+
+vim.lsp.enable('rust_analyzer') 
