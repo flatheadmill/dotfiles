@@ -1,0 +1,42 @@
+[include]
+  # https://raw.githubusercontent.com/dandavison/delta/refs/heads/main/themes.gitconfig
+  path = ~/.local/share/delta/themes.gitconfig
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true    # use n and N to move between diff sections
+    # https://raw.githubusercontent.com/dandavison/delta/refs/heads/main/themes.gitconfig
+    #features = colibri
+    #features = collared-trogon
+    #features = coracias-caudatus
+    #features = hoopoe
+    #features = tangara-chilensis
+    #features = villsau
+    #features = woolly-mammoth
+    #features = calochortus-lyallii
+    #features = mantis-shrimp
+    #features = mantis-shrimp-lite
+    #features = zebra-dark
+    #features = zebra-light
+    #features = chamelon
+    #features = gruvmax-fang # close
+    #features = discord
+    features = mellow-barbet
+    side-by-side = false
+    minus-emph-style = black orange
+    #features = arctic-fox # close
+    #features = corvus
+    #features = platypus
+    #features = weeping-willow
+    #features = mirthful-willow
+
+    # delta detects terminal colors automatically; set one of these to disable auto-detection
+    # dark = true
+    # light = true
+
+[merge]
+    conflictstyle = zdiff3
