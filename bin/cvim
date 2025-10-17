@@ -1,0 +1,26 @@
+#!/usr/bin/env zshctl
+
+function execute:exec {
+    eval "$(args -- "$@")"
+    [[ -e ./nvim.socket ]] || abend 'no socket found'
+    while (( $# )); do
+        nvim --headless --server ./nvim.socket --remote-expr ${1:-}
+        shift
+    done
+}
+
+function execute:run {
+    eval "$(args r,resume -b s,socket -- "$@")"
+    typeset cargs=( claude --add-dir ~/code/ --verbose )
+    [[ -v o_resume ]] && cargs+=( --resume $o_resume )
+    typeset nvargs=()
+    (( o_socket )) && nvargs+=( --listen ./nvim.socket )
+    nvim "${(@)nvargs}" +"$(printf 'vsplit | term %s' ${(j: :)${(@qq)cargs}})"
+}
+
+function execute {
+    eval "$(args -UC -- "$@")"
+    delegate "$@"
+}
+
+# vim: set ft=zsh :
