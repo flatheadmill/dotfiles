@@ -10,7 +10,7 @@ map("n", ";", ":", { desc = "CMD enter command mode" })
 map("t", "<C-q>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
 -- Terminal mode: Ctrl+w also escapes to normal mode (for quick window switching)
-map("t", "<C-w>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+-- map("t", "<C-w>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
 -- Quick file operations in same directory as current buffer
 map("n", ",e", ":edit <C-R>=expand('%:p:h') . '/' <CR>", { desc = "Edit file in same dir" })

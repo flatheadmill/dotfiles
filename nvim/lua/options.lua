@@ -10,3 +10,4 @@ o.mouse = ""
 
 -- Disable search highlighting
 o.hlsearch = false
+o.wildmode = 'longest:full,full'

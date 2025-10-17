@@ -17,7 +17,7 @@ vim.lsp.config.rust_analyzer = {
         allFeatures = true,
       },
       checkOnSave = {
-        enable = false,
+        enable = true,
       },
     },
   },

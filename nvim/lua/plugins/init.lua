@@ -34,6 +34,13 @@ return {
   -- { import = "nvchad.blink.lazyspec" },
 
   {
+    "hrsh7th/nvim-cmp",
+    opts = function()
+      return require "configs.cmp"
+    end,
+  },
+
+  {
   	"nvim-treesitter/nvim-treesitter",
   	opts = {
   		ensure_installed = {
