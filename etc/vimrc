@@ -24,6 +24,16 @@ syntax on               " colorize source
 :nnoremap g* g*zz
 :nnoremap g# g#zz
 
+" Use 24-bit color instead of the old 256 color palette.
+set termguicolors
+let g:gruvbox_italic=1
+
+" These escape sequences are ANSI SGR (Select Graphic Rendition) codes:
+let &t_Cs = "\e[4:3m" " - Start undercurl (4 = underline family, :3 = curly variant)
+let &t_Ce = "\e[4:0m" " - End undercurl (4:0 = no underline)
+" undercurl means curly underline, used by gruvbox for spelling errors
+" see: https://github.com/morhetz/gruvbox/issues/372
+
 " Learn VimScript the Hard Way
 
 " Echoing Messages.
