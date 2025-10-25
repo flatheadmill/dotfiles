@@ -9,6 +9,9 @@ map("n", ";", ":", { desc = "CMD enter command mode" })
 -- Terminal mode: Ctrl+q to escape to normal mode
 map("t", "<C-q>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
+-- Unmap Ctrl+x in terminal mode (used for Claude CLI interrupt)
+vim.keymap.del("t", "<C-x>")
+
 -- Terminal mode: Ctrl+w also escapes to normal mode (for quick window switching)
 -- map("t", "<C-w>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
 
