@@ -41,6 +41,33 @@ return {
   },
 
   {
+    "mrcjkb/rustaceanvim",
+    version = "^5",
+    ft = { "rust" },
+    config = function()
+      vim.g.rustaceanvim = {
+        server = {
+          on_attach = function(client, bufnr)
+            -- Use NvChad's default LSP setup
+            require("nvchad.configs.lspconfig").on_attach(client, bufnr)
+          end,
+          default_settings = {
+            ["rust-analyzer"] = {
+              cargo = {
+                allFeatures = true,
+              },
+              checkOnSave = {
+                enable = true,
+                command = "clippy",
+              },
+            },
+          },
+        },
+      }
+    end,
+  },
+
+  {
   	"nvim-treesitter/nvim-treesitter",
   	opts = {
   		ensure_installed = {
