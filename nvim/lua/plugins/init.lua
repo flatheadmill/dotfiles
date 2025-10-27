@@ -68,12 +68,31 @@ return {
   },
 
   {
+    "ray-x/go.nvim",
+    dependencies = {
+      "ray-x/guihua.lua",
+      "neovim/nvim-lspconfig",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    config = function()
+      require("go").setup({
+        lsp_cfg = true,
+        lsp_on_attach = require("nvchad.configs.lspconfig").on_attach,
+      })
+    end,
+    event = {"CmdlineEnter"},
+    ft = {"go", 'gomod'},
+    build = ':lua require("go.install").update_all_sync()'
+  },
+
+  {
   	"nvim-treesitter/nvim-treesitter",
   	opts = {
   		ensure_installed = {
   			"vim", "lua", "vimdoc",
        "html", "css",
        "rust", "toml",
+       "go", "gomod", "gowork", "gosum",
   		},
   	},
   },

@@ -19,4 +19,11 @@ vim.keymap.del("t", "<C-x>")
 map("n", ",e", ":edit <C-R>=expand('%:p:h') . '/' <CR>", { desc = "Edit file in same dir" })
 map("n", ",s", ":split <C-R>=expand('%:p:h') . '/' <CR>", { desc = "Split file in same dir" })
 
+-- Toggle LSP inlay hints
+map("n", "<Space>th", function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local current = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+  vim.lsp.inlay_hint.enable(not current, { bufnr = bufnr })
+end, { desc = "Toggle inlay hints" })
+
 -- map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
