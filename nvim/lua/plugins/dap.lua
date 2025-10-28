@@ -34,7 +34,10 @@ return {
         },
       }
 
-      -- Shift + Function key bindings for debugging
+      -- Debug key bindings
+      -- Claude suggested minus/equals keys after Function keys failed on macOS
+      -- (Shift+F11 didn't work, F11 stolen by Mission Control, etc.)
+      -- These right-hand keys work without reaching across the keyboard
       vim.keymap.set('n', '<leader>kf', dap.continue, { desc = "Debug: Start/Continue" })
       vim.keymap.set('n', '<leader>kd', dap.toggle_breakpoint, { desc = "Debug: Toggle Breakpoint" })
       vim.keymap.set('n', '<C-k>d', dap.toggle_breakpoint, { desc = "Debug: Toggle Breakpoint" })
