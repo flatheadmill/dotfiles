@@ -12,6 +12,9 @@ o.mouse = ""
 o.hlsearch = false
 o.wildmode = 'longest:full,full'
 
+-- Disable persistent undo (file-based undo history)
+o.undofile = false
+
 -- Remove ! from spellcapcheck for Rust to handle //! doc comments
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "rust",
