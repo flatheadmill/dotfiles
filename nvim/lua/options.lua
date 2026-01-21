@@ -25,3 +25,11 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.cmd("compiler cargo")
   end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {                                           
+  pattern = "rust",                                                                 
+  callback = function()                                                             
+    vim.bo.makeprg = "cargo"                                                        
+    vim.bo.errorformat = [[%Eerror%m,%Wwarning%m,%C %f:%l:%c]]                      
+  end,                                                                              
+})                                                                                  

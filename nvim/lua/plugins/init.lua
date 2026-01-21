@@ -53,12 +53,11 @@ return {
           end,
           default_settings = {
             ["rust-analyzer"] = {
-              cargo = {
-                allFeatures = true,
-              },
-              checkOnSave = {
-                enable = true,
+              checkOnSave = true,
+              check = {
                 command = "clippy",
+                allTargets = false,
+                workspace = false,
               },
             },
           },
@@ -90,9 +89,10 @@ return {
   	opts = {
   		ensure_installed = {
   			"vim", "lua", "vimdoc",
-       "html", "css",
-       "rust", "toml",
-       "go", "gomod", "gowork", "gosum",
+            "html", "css",
+            "rust", "toml",
+            "go", "gomod", "gowork", "gosum",
+            "c", "cpp",
   		},
   	},
   },
