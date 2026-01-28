@@ -1,7 +1,7 @@
 require("nvchad.configs.lspconfig").defaults()
 
 -- Basic servers
-local servers = { "html", "cssls" }
+local servers = { "html", "cssls", "ts_ls" }
 vim.lsp.enable(servers)
 
 -- Rust is handled by rustaceanvim plugin, not manual lspconfig 
