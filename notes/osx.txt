@@ -1,0 +1,2 @@
+Disable Notes from bottom left corner by disabling "Hot Corners" in "System
+Settings."
