@@ -20,6 +20,10 @@ return {
         split_side = "right",
         split_width_percentage = 0.40,
       },
+      diff_opts = {
+        keep_terminal_focus = true,
+        open_in_new_tab = true,
+      },
     },
   },
 }
