@@ -18,6 +18,22 @@ function M.find_code_win()
     end
 end
 
+function M.wins()
+    local wins = {}
+    for _, w in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(w)
+        wins[#wins + 1] = {
+            win = w,
+            buf = buf,
+            name = vim.api.nvim_buf_get_name(buf),
+            buftype = vim.bo[buf].buftype,
+            lines = vim.api.nvim_buf_line_count(buf),
+            modified = vim.bo[buf].modified,
+        }
+    end
+    return wins
+end
+
 function M.show(file, line)
     local term = M.find_terminal()
     local code = M.find_code_win()

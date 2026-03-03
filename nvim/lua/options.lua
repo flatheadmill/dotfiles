@@ -19,17 +19,9 @@ o.undofile = false
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "rust",
   callback = function()
-    -- Remove ! from spellcapcheck for //! doc comments
     vim.opt_local.spellcapcheck = [[.[?]\_[\])'"	 ]\+]]
-    -- Set cargo as compiler for :make! build/test/check/clippy
     vim.cmd("compiler cargo")
+    vim.bo.makeprg = "cargo"
+    vim.bo.errorformat = [[%Eerror%m,%Wwarning%m,%C %f:%l:%c]]
   end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {                                           
-  pattern = "rust",                                                                 
-  callback = function()                                                             
-    vim.bo.makeprg = "cargo"                                                        
-    vim.bo.errorformat = [[%Eerror%m,%Wwarning%m,%C %f:%l:%c]]                      
-  end,                                                                              
 })                                                                                  
