@@ -12,6 +12,7 @@
   tree = log --graph --pretty=format:'%C(yellow)%h%Creset%C(blue)%d%Creset %C(black bold)%s%Creset %C(white bold)(by %an %ar)%Creset' --all
   type = cat-file -t
   dump = cat-file -p
+  ksdiff = difftool -t ksdiff -d
 ; when creating and cloning
 [init]
   templatedir = ~/.dotfiles/etc/git.template
@@ -33,13 +34,10 @@
 ;[url "git@github.com:"]
 ;  pushInsteadOf = https://github.com/
 ;  pushInsteadOf = git://github.com/
-; Atlassian SourceTree added the following
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+[difftool "ksdiff"]
+	cmd = ksdiff --changeset \"$LOCAL\" \"$REMOTE\"
+[difftool]
+	prompt = false
 [pull]
 	ff = only
 [gpg]
