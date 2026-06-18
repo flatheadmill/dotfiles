@@ -25,6 +25,12 @@ require("lazy").setup({
   { import = "plugins" },
 }, lazy_config)
 
+-- lazy.nvim's performance.rtp.reset rebuilds the runtimepath and does not put
+-- our own after/ directory back. Without it the syntax loader never sources
+-- after/syntax/*.vim, so local overrides like the indented-heredoc fix in
+-- after/syntax/zsh.vim silently do nothing. Append it so after/ files load.
+vim.opt.rtp:append(vim.fn.stdpath("config") .. "/after")
+
 -- load theme
 dofile(vim.g.base46_cache .. "defaults")
 dofile(vim.g.base46_cache .. "statusline")
