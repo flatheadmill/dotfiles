@@ -68,7 +68,8 @@ setopt NO_FLOW_CONTROL          # Something to do with silencing the terminal. T
 setopt INTERACTIVE              # Insist that this is an interactive shell.
 setopt INTERACTIVE_COMMENTS     # Allow comments even in interactive shells.
 setopt LONG_LIST_JOBS           # Print job notifications in the long format by default.
-setopt MONITOR                  # Allow job control. Set by default in interactive shells.
+# Job control needs a controlling terminal, so gate on one; a tty-less interactive shell (the harness sourcing this) can't enable MONITOR and zsh grumbles.
+[[ -t 0 ]] && setopt MONITOR    # Allow job control. Set by default in interactive shells.
 setopt PROMPT_SUBST             # Perform parameter expansion, command substitution, and arithmetic expansion in prompts.
                                 # TODO ^ Do I need this when I'm using `minimal.zsh`?
 setopt PUSHD_IGNORE_DUPS        # Don’t push multiple copies of the same directory onto the directory stack.
