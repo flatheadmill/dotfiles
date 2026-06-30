@@ -11,30 +11,7 @@ function {
     esac
 }
 
-# +------+
-# | PATH |
-# +------+
-
-# Reset path when we start a new interactive shell.
-export PATH=/bin:/usr/bin
-
-function {
-    typeset part directories=(
-        ~/.local/bin
-        ~/.dotfiles/bin
-        ~/.asdf/shims
-        /home/linuxbrew/.linuxbrew/bin
-        /opt/homebrew/bin
-        /usr/local/bin
-        ~/.cargo/bin
-        ~/go/bin
-    )
-    for part in "${(@Oa)directories}"; do
-        if [[ -d $part ]] && (( ! ${path[(Ie)$part]} )); then
-            export PATH=$part:$PATH
-        fi
-    done
-}
+# PATH is built in zshenv.zsh so that headless shells inherit the toolchain too.
 
 # +-------------+
 # | Environment |
