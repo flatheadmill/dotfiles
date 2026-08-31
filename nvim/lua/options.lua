@@ -21,7 +21,5 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.opt_local.spellcapcheck = [[.[?]\_[\])'"	 ]\+]]
     vim.cmd("compiler cargo")
-    vim.bo.makeprg = "cargo"
-    vim.bo.errorformat = [[%Eerror%m,%Wwarning%m,%C %f:%l:%c]]
   end,
 })                                                                                  
