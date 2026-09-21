@@ -5,7 +5,7 @@
 slug=$1
 relative=projects/$slug/agenda.md
 
-for vault in athenaeum florilegium; do
+for vault in athenaeum assistance; do
     if [ -f "$HOME/code/$vault/$relative" ]; then
         if /opt/homebrew/bin/obsidian vault="$vault" open path="$relative" >/dev/null 2>&1; then
             /usr/bin/open -a Obsidian
