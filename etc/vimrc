@@ -127,11 +127,63 @@ Plug 'roxma/nvim-yarp', { 'do': 'pip install -r requirements.txt' }
 Plug 'lifepillar/pgsql.vim'
 Plug 'google/vim-jsonnet'
 Plug 'morhetz/gruvbox'
+Plug 'joshdick/onedark.vim'
+Plug 'catppuccin/vim', { 'as': 'catppuccin', 'branch': 'main' }
+Plug 'nordtheme/vim'
 Plug 'grafana/vim-alloy'
 Plug 'preservim/nerdtree'
 Plug 'raghur/vim-ghost'
 
 call plug#end()
+
+" Nord on the terminal canvas. Switch the ColorScheme callback between
+" NordBright and NordSubdued to compare the active palette with its checkpoint.
+function! s:NordSubdued()
+    highlight Normal guifg=#D8DEE9 guibg=#282c34
+    highlight FoldColumn guibg=#282c34
+    highlight SignColumn guibg=#282c34
+    highlight VertSplit guibg=#282c34
+    highlight Function guifg=#8FD4E3
+    highlight Keyword guifg=#8DB9E1
+    highlight Statement guifg=#8DB9E1
+    highlight Type guifg=#8DB9E1
+    highlight String guifg=#ABD58F
+    highlight Character guifg=#ABD58F
+    highlight Number guifg=#C8A0C4
+    highlight Float guifg=#C8A0C4
+    highlight Boolean guifg=#8DB9E1
+    highlight Comment guifg=#AAB4C3
+endfunction
+
+function! s:NordBright()
+    highlight Normal guifg=#F0F2F6 guibg=#282c34
+    highlight FoldColumn guibg=#282c34
+    highlight SignColumn guibg=#282c34
+    highlight VertSplit guibg=#282c34
+    highlight Identifier guifg=#F0F2F6
+    highlight Constant guifg=#F0F2F6
+    highlight Special guifg=#F0F2F6
+    highlight Delimiter guifg=#F4F6F9
+    highlight Function guifg=#A1E1EC
+    highlight Keyword guifg=#A3C8EE
+    highlight Statement guifg=#A3C8EE
+    highlight Type guifg=#A3C8EE
+    highlight Operator guifg=#A3C8EE
+    highlight PreProc guifg=#A3C8EE
+    highlight String guifg=#C0E4A5
+    highlight Character guifg=#C0E4A5
+    highlight Number guifg=#DDB4D7
+    highlight Float guifg=#DDB4D7
+    highlight Boolean guifg=#A3C8EE
+    highlight SpecialChar guifg=#F2D39A
+    highlight Decorator guifg=#E8A38C
+    highlight Comment guifg=#C1C9D4
+endfunction
+
+augroup nord_terminal_canvas
+    autocmd!
+    autocmd ColorScheme nord call <SID>NordBright()
+augroup END
 
 " Unified color scheme (default: dark)
 " colo seoul256

@@ -1,0 +1,153 @@
+---@type Base46Table
+local M = {}
+
+M.base_30 = {
+  white = "#F0F2F6",
+  black = "#282c34",
+  darker_black = "#22262D",
+  black2 = "#2E333D",
+  one_bg = "#343A46",
+  one_bg2 = "#3B424F",
+  one_bg3 = "#454D5B",
+  grey = "#596273",
+  grey_fg = "#687487",
+  grey_fg2 = "#778397",
+  light_grey = "#C1C9D4",
+  red = "#E58B95",
+  baby_pink = "#F0A3AA",
+  pink = "#ECA0BD",
+  line = "#3B424E",
+  green = "#C0E4A5",
+  vibrant_green = "#D0F0B8",
+  nord_blue = "#A3C8EE",
+  blue = "#A3C8EE",
+  seablue = "#8DB9E1",
+  yellow = "#F2D39A",
+  sun = "#F7DDA7",
+  purple = "#DDB4D7",
+  dark_purple = "#C99AC3",
+  teal = "#8CC6CE",
+  orange = "#E8A38C",
+  cyan = "#A1E1EC",
+  statusline_bg = "#303641",
+  lightbg = "#39404C",
+  pmenu_bg = "#A3C8EE",
+  folder_bg = "#A1E1EC",
+}
+
+M.base_16 = {
+  base00 = "#282c34",
+  base01 = "#303641",
+  base02 = "#39404C",
+  base03 = "#687487",
+  base04 = "#AAB4C3",
+  base05 = "#F0F2F6",
+  base06 = "#F4F6F9",
+  base07 = "#FFFFFF",
+  base08 = "#E58B95",
+  base09 = "#DDB4D7",
+  base0A = "#F2D39A",
+  base0B = "#C0E4A5",
+  base0C = "#A1E1EC",
+  base0D = "#A1E1EC",
+  base0E = "#A3C8EE",
+  base0F = "#F2D39A",
+}
+
+local white = M.base_30.white
+local blue = M.base_30.blue
+local green = M.base_30.green
+local purple = M.base_30.purple
+local cyan = M.base_30.cyan
+local yellow = M.base_30.yellow
+local orange = M.base_30.orange
+local comment = M.base_30.light_grey
+
+M.polish_hl = {
+  defaults = {
+    Normal = { fg = white, bg = M.base_30.black },
+    Comment = { fg = comment },
+  },
+
+  syntax = {
+    Boolean = { fg = blue },
+    Character = { fg = green },
+    Conditional = { fg = blue },
+    Constant = { fg = white },
+    Define = { fg = blue },
+    Delimiter = { fg = M.base_16.base06 },
+    Float = { fg = purple },
+    Variable = { fg = white },
+    Function = { fg = cyan },
+    Identifier = { fg = white },
+    Include = { fg = blue },
+    Keyword = { fg = blue },
+    Label = { fg = blue },
+    Number = { fg = purple },
+    Operator = { fg = blue },
+    PreProc = { fg = blue },
+    Repeat = { fg = blue },
+    Special = { fg = white },
+    SpecialChar = { fg = yellow },
+    Statement = { fg = blue },
+    StorageClass = { fg = blue },
+    String = { fg = green },
+    Structure = { fg = blue },
+    Tag = { fg = white },
+    Type = { fg = blue },
+    Typedef = { fg = blue },
+  },
+
+  treesitter = {
+    ["@variable"] = { fg = white },
+    ["@variable.builtin"] = { fg = white },
+    ["@variable.parameter"] = { fg = white },
+    ["@variable.member"] = { fg = white },
+    ["@variable.member.key"] = { fg = white },
+    ["@module"] = { fg = white },
+    ["@constant"] = { fg = white },
+    ["@constant.builtin"] = { fg = white },
+    ["@constant.macro"] = { fg = white },
+    ["@string"] = { fg = green },
+    ["@string.regex"] = { fg = green },
+    ["@string.escape"] = { fg = yellow },
+    ["@character"] = { fg = green },
+    ["@number"] = { fg = purple },
+    ["@number.float"] = { fg = purple },
+    ["@annotation"] = { fg = orange },
+    ["@attribute"] = { fg = orange },
+    ["@keyword"] = { fg = blue },
+    ["@keyword.function"] = { fg = blue },
+    ["@keyword.return"] = { fg = blue },
+    ["@keyword.operator"] = { fg = blue },
+    ["@keyword.conditional"] = { fg = blue },
+    ["@keyword.conditional.ternary"] = { fg = blue },
+    ["@keyword.repeat"] = { fg = blue },
+    ["@keyword.storage"] = { fg = blue },
+    ["@keyword.directive.define"] = { fg = blue },
+    ["@keyword.directive"] = { fg = blue },
+    ["@function"] = { fg = cyan },
+    ["@function.builtin"] = { fg = cyan },
+    ["@function.macro"] = { fg = cyan },
+    ["@function.call"] = { fg = cyan },
+    ["@function.method"] = { fg = cyan },
+    ["@function.method.call"] = { fg = cyan },
+    ["@constructor"] = { fg = cyan },
+    ["@operator"] = { fg = blue },
+    ["@reference"] = { fg = white },
+    ["@punctuation.bracket"] = { fg = M.base_16.base06 },
+    ["@punctuation.delimiter"] = { fg = M.base_16.base06 },
+    ["@symbol"] = { fg = white },
+    ["@tag"] = { fg = white },
+    ["@tag.attribute"] = { fg = white },
+    ["@tag.delimiter"] = { fg = M.base_16.base06 },
+    ["@type"] = { fg = blue },
+    ["@type.builtin"] = { fg = blue },
+    ["@property"] = { fg = white },
+    ["@comment"] = { fg = comment },
+  },
+}
+
+M.type = "dark"
+
+return M
