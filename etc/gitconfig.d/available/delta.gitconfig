@@ -25,9 +25,9 @@
     #features = chamelon
     #features = gruvmax-fang # close
     #features = discord
-    features = mellow-barbet
+    #features = mellow-barbet
+    features = patina
     side-by-side = false
-    minus-emph-style = black orange
     #features = arctic-fox # close
     #features = corvus
     #features = platypus
@@ -37,6 +37,22 @@
     # delta detects terminal colors automatically; set one of these to disable auto-detection
     # dark = true
     # light = true
+
+[delta "patina"]
+    dark = true
+    true-color = always
+    syntax-theme = Nord
+    file-style = bold "#A3C8EE"
+    hunk-header-style = file line-number syntax
+    zero-style = syntax
+    minus-style = syntax "#3A2F33"
+    minus-non-emph-style = syntax "#3A2F33"
+    minus-emph-style = syntax "#583840"
+    minus-empty-line-marker-style = normal "#3A2F33"
+    plus-style = syntax "#2D3932"
+    plus-non-emph-style = syntax "#2D3932"
+    plus-emph-style = syntax "#3C5142"
+    plus-empty-line-marker-style = normal "#2D3932"
 
 [merge]
     conflictstyle = zdiff3
